@@ -1,0 +1,226 @@
+/* EduVLM-Bench - Enhanced Custom Styles */
+
+/* ===================== */
+/* === CSS Variables === */
+/* ===================== */
+:root {
+  --academic-blue: #2563eb;
+  --dark-slate: #1e293b;
+  --slate-grey: #64748b;
+  --light-grey: #f1f5f9;
+  --accent-amber: #f59e0b;
+  --success-emerald: #10b981;
+
+  --white: #ffffff;
+  --light-border: #e2e8f0;
+}
+
+/* =================== */
+/* === Font Family === */
+/* =================== */
+.font-crimson {
+  font-family: 'Crimson Text', serif;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+/* ================== */
+/* === Text Colors === */
+/* ================== */
+.text-academic-blue { color: var(--academic-blue); }
+.text-dark-slate     { color: var(--dark-slate); }
+.text-slate-grey     { color: var(--slate-grey); }
+.text-success-emerald { color: var(--success-emerald); }
+.text-accent-amber   { color: var(--accent-amber); }
+
+/* ===================== */
+/* === Backgrounds === */
+/* ===================== */
+.bg-light-grey     { background-color: var(--light-grey); }
+.bg-academic-blue  { background-color: var(--academic-blue); }
+.bg-accent-amber   { background-color: var(--accent-amber); }
+.bg-success-emerald { background-color: var(--success-emerald); }
+
+/* ======================= */
+/* === Navigation Links === */
+/* ======================= */
+.nav-link {
+  transition: all 0.3s ease;
+  color: var(--slate-grey);
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--academic-blue);
+}
+
+/* ================= */
+/* === Page Wrapper === */
+/* ================= */
+.page-content {
+  min-height: calc(100vh - 64px);
+  padding-bottom: 4rem;
+}
+
+/* ================= */
+/* === Buttons === */
+/* ================= */
+button {
+  transition: all 0.3s ease;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button svg {
+  flex-shrink: 0;
+}
+
+button:focus {
+  outline: 2px solid var(--academic-blue);
+  outline-offset: 2px;
+}
+
+/* Primary */
+.bg-academic-blue {
+  background-color: var(--academic-blue);
+  color: var(--white);
+}
+.bg-academic-blue:hover {
+  background-color: #1e40af;
+}
+
+/* Amber */
+.bg-accent-amber {
+  background-color: var(--accent-amber);
+  color: var(--white);
+}
+.bg-accent-amber:hover {
+  background-color: #d97706;
+}
+
+/* Outline Buttons */
+button.border {
+  background-color: var(--white);
+  border: 1px solid var(--light-border);
+}
+button.border:hover {
+  background-color: var(--light-grey);
+}
+
+/* ===================== */
+/* === Sort Indicators === */
+/* ===================== */
+.sort-icon {
+  color: var(--slate-grey);
+  font-size: 0.8rem;
+  margin-left: 0.25rem;
+}
+.sort-icon.asc::before {
+  content: '↑';
+  color: var(--academic-blue);
+}
+.sort-icon.desc::before {
+  content: '↓';
+  color: var(--academic-blue);
+}
+
+/* =================== */
+/* === Rank Badges === */
+/* =================== */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.rank-badge.rank-1 {
+  background-color: var(--accent-amber);
+  color: var(--white);
+}
+.rank-badge.rank-2,
+.rank-badge.rank-3 {
+  background-color: var(--slate-grey);
+  color: var(--white);
+}
+.rank-badge.rank-other {
+  background-color: #e5e7eb;
+  color: var(--dark-slate);
+}
+
+/* ======================== */
+/* === Score Indicators === */
+/* ======================== */
+.score-excellent {
+  color: var(--success-emerald);
+  font-weight: 600;
+}
+.score-good {
+  color: var(--academic-blue);
+  font-weight: 600;
+}
+.score-average {
+  color: var(--slate-grey);
+  font-weight: 500;
+}
+.score-overall-excellent {
+  color: var(--success-emerald);
+  font-weight: 700;
+}
+
+/* ============================ */
+/* === Responsive Utilities === */
+/* ============================ */
+@media (max-width: 768px) {
+  .nav-link {
+    display: block;
+    padding: 0.75rem 1rem;
+  }
+
+  .grid-responsive {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ======================== */
+/* === Modal Enhancements === */
+/* ======================== */
+.modal-overlay {
+  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* ===================== */
+/* === Scrollbar UI === */
+/* ===================== */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: var(--light-grey);
+}
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: var(--slate-grey);
+  border-radius: 4px;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: var(--academic-blue);
+}
+
+/* =================== */
+/* === Transitions === */
+/* =================== */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
