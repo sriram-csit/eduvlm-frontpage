@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Leaderboard - EduVLM-Bench</title>
+    <meta name="description" content="Performance comparison of various vision-language models on EduVLM-Bench educational concept learning tasks.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-white font-inter antialiased">
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-xl font-semibold text-academic-blue">
+                        EduVLM-Bench
+                    </a>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="nav-link">
+                        Research
+                    </a>
+                    <a href="leaderboard.html" class="nav-link active">
+                        Leaderboard
+                    </a>
+                </div>
+                
+                <!-- Desktop Download Button & Auth -->
+                <div class="hidden md:flex items-center space-x-3">
+                    <button onclick="downloadPaper()" class="bg-accent-amber text-white hover:bg-yellow-500 transition-colors font-medium px-4 py-2 rounded-md flex items-center text-sm">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Download
+                    </button>
+                    
+                    <!-- Authentication Section -->
+                    <div id="authContainer" class="auth-container flex space-x-2">
+                        <button id="showLoginBtn" class="auth-btn login-btn bg-academic-blue text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Login</button>
+                        <button id="showRegisterBtn" class="auth-btn register-btn bg-white text-academic-blue border border-academic-blue hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors">Sign Up</button>
+                    </div>
+                    
+                    <!-- User Info Section (hidden by default) -->
+                    <div id="userInfo" class="user-info" style="display: none;">
+                        <!-- User info will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-slate-grey hover:text-academic-blue focus:outline-none">
+                        <svg id="mobile-menu-icon" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Navigation Menu -->
+            <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200 py-4">
+                <div class="space-y-3">
+                    <a href="index.html" class="block nav-link-mobile">
+                        Research
+                    </a>
+                    <a href="leaderboard.html" class="block nav-link-mobile active">
+                        Leaderboard
+                    </a>
+                    <button onclick="downloadPaper()" class="w-full bg-accent-amber text-white hover:bg-yellow-500 transition-colors font-medium px-4 py-2 rounded-md flex items-center justify-center text-sm mt-4">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Download Paper
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Leaderboard Page -->
+    <main class="min-h-screen">
+        <section class="py-8 md:py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Header -->
+                <div class="text-center mb-8 md:mb-12">
+                    <h1 class="text-3xl md:text-4xl font-bold font-crimson mb-4 text-academic-blue">
+                        Model Leaderboard
+                    </h1>
+                    <p class="text-base md:text-lg text-slate-grey">
+                        Performance comparison of various models on EduVLM-Bench tasks
+                    </p>
+                </div>
+
+                <!-- Filters -->
+                <div class="bg-light-grey rounded-lg p-4 md:p-6 mb-6 md:mb-8">
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <select id="model-filter" class="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm flex-1 sm:flex-none">
+                            <option value="all">All Model Types</option>
+                            <option value="GPT">GPT Models</option>
+                            <option value="Flan">Flan Models</option>
+                            <option value="Gemini">Gemini Models</option>
+                        </select>
+                        
+                        <select id="size-filter" class="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm flex-1 sm:flex-none">
+                            <option value="all">All Sizes</option>
+                            <option value="250M">250M</option>
+                            <option value="2B">2B</option>
+                            <option value="4B">4B</option>
+                            <option value="7B">7B</option>
+                        </select>
+
+                        <button onclick="resetFilters()" class="px-4 py-2 border border-gray-300 rounded-md text-slate-grey hover:bg-gray-100 transition-colors text-sm flex items-center justify-center">
+                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span class="hidden sm:inline">Reset Filters</span>
+                            <span class="sm:hidden">Reset</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mobile Leaderboard Cards -->
+                <div id="mobile-leaderboard" class="block md:hidden space-y-4 mb-8">
+                    <!-- Cards will be populated by JavaScript -->
+                </div>
+
+                <!-- Desktop Leaderboard Table -->
+                <div class="hidden md:block bg-white shadow-sm rounded-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-light-grey">
+                                <tr>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('rank')">
+                                        Rank <span id="rank-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelName')">
+                                        Model <span id="modelName-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('size')">
+                                        Size <span id="size-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('prerequisiteAccuracy')">
+                                        <span class="hidden lg:inline">Prerequisite Accuracy</span>
+                                        <span class="lg:hidden">Prereq. Acc.</span>
+                                        <span id="prerequisiteAccuracy-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('conceptRecall')">
+                                        <span class="hidden lg:inline">Concept Recall</span>
+                                        <span class="lg:hidden">Concept</span>
+                                        <span id="conceptRecall-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('learningPathQuality')">
+                                        <span class="hidden lg:inline">Learning Path Quality</span>
+                                        <span class="lg:hidden">Learning</span>
+                                        <span id="learningPathQuality-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('overallScore')">
+                                        <span class="hidden lg:inline">Overall Score</span>
+                                        <span class="lg:hidden">Overall</span>
+                                        <span id="overallScore-sort" class="sort-icon">↕</span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Table rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Back to Research -->
+                <div class="text-center mt-8 md:mt-12">
+                    <a href="index.html" class="inline-flex items-center text-academic-blue hover:text-blue-700 transition-colors font-medium">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Research Overview
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light-grey border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- About Section -->
+                <div class="md:col-span-2">
+                    <h3 class="text-lg font-semibold mb-4 text-academic-blue">
+                        EduVLM-Bench
+                    </h3>
+                    <p class="text-sm leading-relaxed mb-4 text-slate-grey">
+                        A multimodal benchmark for evaluating educational concept understanding in Vision-Language Models. 
+                        Our framework focuses on identifying prerequisite concepts and bridging the gap between confusion and conceptual clarity.
+                    </p>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-sm font-semibold mb-4 text-dark-slate">
+                        Quick Links
+                    </h4>
+                    <ul class="space-y-3">
+                        <li>
+                            <a href="index.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                                Research Paper
+                            </a>
+                        </li>
+                        <li>
+                            <a href="leaderboard.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                                Model Leaderboard
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Authors -->
+                <div>
+                    <h4 class="text-sm font-semibold mb-4 text-dark-slate">
+                        Authors
+                    </h4>
+                    <ul class="space-y-2">
+                        <li class="text-sm text-slate-grey">Arka Mukerjee</li>
+                        <li class="text-sm text-slate-grey">Sriram P</li>
+                        <li class="text-sm text-slate-grey">Abhishekh Padhypalli</li>
+                        <li class="text-sm text-slate-grey">Nilam Bhojwani</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="border-t border-gray-300 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center">
+                <p class="text-sm text-slate-grey">
+                    © <span id="current-year"></span> EduVLM-Bench. All rights reserved.
+                </p>
+                <div class="flex space-x-6 mt-4 sm:mt-0">
+                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                        Privacy Policy
+                    </a>
+                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                        Terms of Use
+                    </a>
+                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                        Contact
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <!-- Login Modal -->
+    <div id="loginModal" class="auth-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Login to EduVLM-Bench</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" name="password" required>
+                </div>
+                <button type="submit" class="submit-btn">Login</button>
+                <p class="switch-auth">
+                    Don't have an account? <a href="#" id="switchToRegister">Sign up</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="auth-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sign Up for EduVLM-Bench</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="registerForm" class="auth-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required minlength="3" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" name="password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+                </div>
+                <button type="submit" class="submit-btn">Register</button>
+                <p class="switch-auth">
+                    Already have an account? <a href="#" id="switchToLogin">Login</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="auth.js"></script>
+</body>
+</html>
