@@ -187,9 +187,7 @@ function renderLeaderboard() {
         <td><div>${entry.modelName}</div><div>${entry.company}</div></td>
         <td>${entry.size}</td>
         <td><span class="${getScoreClass(entry.prerequisiteAccuracy)}">${entry.prerequisiteAccuracy}%</span></td>
-        <td><span class="${getScoreClass(entry.conceptRecall)}">${entry.conceptRecall}%</span></td>
-        <td><span class="${getScoreClass(entry.learningPathQuality)}">${entry.learningPathQuality}%</span></td>
-        <td><span class="${getScoreClass(entry.overallScore, true)}">${entry.overallScore}%</span></td>
+
       `;
       tbody.appendChild(row);
     });
