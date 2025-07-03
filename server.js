@@ -118,11 +118,18 @@ let questions = [];
 fs.createReadStream(CSV_PATH)
   .pipe(csv())
   .on('data', (row) => {
+    // Parse all_prerequisites into an array, removing quotes and brackets
+    const prerequisites = row.all_prerequisites
+      ? row.all_prerequisites
+          .replace(/[\[\]"]+/g, '') // Remove brackets and quotes
+          .split(',')
+          .map(item => item.trim()) // Trim whitespace
+      : [];
     questions.push({
       question_id: row.question_id,
       question: row.question,
       correct_answer: row.correct_answer,
-      all_prerequisites: row.all_prerequisites,
+      all_prerequisites: prerequisites, // Store as array
       wrong_answer: row.wrong_answer
     });
   })

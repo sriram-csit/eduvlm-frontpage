@@ -489,8 +489,8 @@
 
             const prerequisiteSelect = document.getElementById('prerequisite-select');
             prerequisiteSelect.innerHTML = '<option value="">Select a prerequisite</option>';
-            question.all_prerequisites.split(',').forEach(prereq => {
-                const trimmedPrereq = prereq.trim();
+            question.all_prerequisites.forEach(prereq => {
+                const trimmedPrereq = prereq.trim().replace(/['"]/g, ''); // Remove single and double quotes
                 if (trimmedPrereq) {
                     const option = document.createElement('option');
                     option.value = trimmedPrereq;
