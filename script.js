@@ -1,8 +1,6 @@
-// Leaderboard Data
 let leaderboardData = [];
 const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/1BiHQZ5-DpgB_RlrxC-w0q_zxD9Tj-YxYpG9vU01IPD8/gviz/tq?sheet=Sheet1';
 
-// Fetch spreadsheet data and initialize leaderboard
 fetch(spreadsheetURL)
   .then(res => res.text())
   .then(rep => {
@@ -14,12 +12,12 @@ fetch(spreadsheetURL)
         id: index + 1,
         rank: index + 1,
         modelName: row.c[0]?.v || 'N/A',
-        company: row.c[1]?.v || '-',  // Use column 2 for company
+        company: row.c[1]?.v || '-',
         size: row.c[2]?.v || '-',
-        prerequisiteAccuracy: parseFloat((row.c[3]?.v || 0).toFixed(2)), // Detection Accuracy
+        prerequisiteAccuracy: parseFloat((row.c[3]?.v || 0).toFixed(2)),
         conceptRecall: 0,
         learningPathQuality: 0,
-        overallScore: parseFloat((row.c[3]?.v || 0).toFixed(2)) // Same as Detection Accuracy
+        overallScore: parseFloat((row.c[3]?.v || 0).toFixed(2))
       };
     });
 
@@ -27,14 +25,20 @@ fetch(spreadsheetURL)
   })
   .catch(error => {
     console.error('Error loading spreadsheet:', error);
-    alert("Failed to load leaderboard data from Google Sheets.");
+    showNotification('Failed to load leaderboard data from Google Sheets.', 'error');
   });
 
 let currentSort = { column: 'rank', direction: 'asc' };
 let currentFilters = { modelType: 'all', size: 'all' };
+let currentUser = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('#current-year').forEach(el => el.textContent = new Date().getFullYear());
+  const yearElements = document.querySelectorAll('#current-year');
+  if (yearElements.length > 0) {
+    yearElements.forEach(el => el.textContent = new Date().getFullYear());
+  }
+
+  checkAuth();
 
   if (document.getElementById('leaderboard-body') || document.getElementById('mobile-leaderboard')) {
     renderLeaderboard();
@@ -56,18 +60,50 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   }
+
+  const loginBtn = document.getElementById('login-btn');
+  if (loginBtn) loginBtn.addEventListener('click', () => {
+    const loginModal = document.getElementById('login-modal');
+    if (loginModal) loginModal.classList.remove('hidden');
+  });
+
+  const signupBtn = document.getElementById('signup-btn');
+  if (signupBtn) signupBtn.addEventListener('click', () => {
+    const signupModal = document.getElementById('signup-modal');
+    if (signupModal) signupModal.classList.remove('hidden');
+  });
+
+  const mobileLoginBtn = document.getElementById('mobile-login-btn');
+  if (mobileLoginBtn) mobileLoginBtn.addEventListener('click', () => {
+    const loginModal = document.getElementById('login-modal');
+    if (loginModal) loginModal.classList.remove('hidden');
+  });
+
+  const mobileSignupBtn = document.getElementById('mobile-signup-btn');
+  if (mobileSignupBtn) mobileSignupBtn.addEventListener('click', () => {
+    const signupModal = document.getElementById('signup-modal');
+    if (signupModal) signupModal.classList.remove('hidden');
+  });
+
+  const loginSubmit = document.getElementById('login-submit');
+  if (loginSubmit) loginSubmit.addEventListener('click', login);
+
+  const signupSubmit = document.getElementById('signup-submit');
+  if (signupSubmit) signupSubmit.addEventListener('click', signup);
 });
 
 function toggleMobileMenu() {
   const mobileMenu = document.getElementById('mobile-menu');
   const icon = document.getElementById('mobile-menu-icon');
 
-  if (mobileMenu.classList.contains('hidden')) {
-    mobileMenu.classList.remove('hidden');
-    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
-  } else {
-    mobileMenu.classList.add('hidden');
-    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+  if (mobileMenu && icon) {
+    if (mobileMenu.classList.contains('hidden')) {
+      mobileMenu.classList.remove('hidden');
+      icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
+    } else {
+      mobileMenu.classList.add('hidden');
+      icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+    }
   }
 }
 
@@ -80,19 +116,21 @@ function viewCode() {
 }
 
 function showCitation() {
-  document.getElementById('citation-modal').classList.remove('hidden');
+  const modal = document.getElementById('citation-modal');
+  if (modal) modal.classList.remove('hidden');
 }
 
 function hideCitation() {
-  document.getElementById('citation-modal').classList.add('hidden');
+  const modal = document.getElementById('citation-modal');
+  if (modal) modal.classList.add('hidden');
 }
 
 function copyCitation() {
-  const citationText = document.getElementById('citation-text').textContent;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(citationText).then(() => alert('Citation copied to clipboard!'));
-  } else {
-    fallbackCopyTextToClipboard(citationText);
+  const citationText = document.getElementById('citation-text');
+  if (citationText && navigator.clipboard) {
+    navigator.clipboard.writeText(citationText.textContent).then(() => showNotification('Citation copied to clipboard!', 'success'));
+  } else if (citationText) {
+    fallbackCopyTextToClipboard(citationText.textContent);
   }
 }
 
@@ -105,11 +143,192 @@ function fallbackCopyTextToClipboard(text) {
   textArea.select();
   try {
     document.execCommand('copy');
-    alert('Citation copied to clipboard!');
+    showNotification('Citation copied to clipboard!', 'success');
   } catch {
-    alert('Failed to copy citation. Please copy manually.');
+    showNotification('Failed to copy citation. Please copy manually.', 'error');
   }
   document.body.removeChild(textArea);
+}
+
+async function checkAuth() {
+  try {
+    const response = await fetch('/api/user', { credentials: 'include' });
+    if (response.ok) {
+      const data = await response.json();
+      currentUser = data.user;
+      const loginBtn = document.getElementById('login-btn');
+      const signupBtn = document.getElementById('signup-btn');
+      const mobileLoginBtn = document.getElementById('mobile-login-btn');
+      const mobileSignupBtn = document.getElementById('mobile-signup-btn');
+      if (loginBtn) loginBtn.classList.add('hidden');
+      if (signupBtn) signupBtn.classList.add('hidden');
+      if (mobileLoginBtn) mobileLoginBtn.classList.add('hidden');
+      if (mobileSignupBtn) mobileSignupBtn.classList.add('hidden');
+      renderUserInfo();
+    }
+  } catch (error) {
+    console.error('Auth check failed:', error);
+  }
+}
+
+function renderUserInfo() {
+  const userInfo = document.getElementById('user-info');
+  if (userInfo && currentUser) {
+    userInfo.classList.remove('hidden');
+    userInfo.innerHTML = `
+      <div class="user-info-content">
+        <div class="user-avatar">${currentUser.firstName[0]}${currentUser.lastName[0]}</div>
+        <div class="user-details">
+          <div class="user-name">${currentUser.firstName} ${currentUser.lastName}</div>
+          <div class="user-username">@${currentUser.username}</div>
+          <div class="user-email">${currentUser.email}</div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>`;
+  }
+}
+
+async function login() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const errorDiv = document.getElementById('login-error');
+
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      currentUser = data.user;
+      const loginModal = document.getElementById('login-modal');
+      if (loginModal) loginModal.classList.add('hidden');
+      showNotification('Login successful!', 'success');
+      renderUserInfo();
+      const loginBtn = document.getElementById('login-btn');
+      const signupBtn = document.getElementById('signup-btn');
+      const mobileLoginBtn = document.getElementById('mobile-login-btn');
+      const mobileSignupBtn = document.getElementById('mobile-signup-btn');
+      if (loginBtn) loginBtn.classList.add('hidden');
+      if (signupBtn) signupBtn.classList.add('hidden');
+      if (mobileLoginBtn) mobileLoginBtn.classList.add('hidden');
+      if (mobileSignupBtn) mobileSignupBtn.classList.add('hidden');
+    } else {
+      if (errorDiv) {
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = data.error || 'Login failed';
+      }
+    }
+  } catch (error) {
+    if (errorDiv) {
+      errorDiv.style.display = 'block';
+      errorDiv.textContent = 'Server error during login';
+    }
+  }
+}
+
+async function signup() {
+  const firstName = document.getElementById('signup-firstName').value;
+  const lastName = document.getElementById('signup-lastName').value;
+  const username = document.getElementById('signup-username').value;
+  const email = document.getElementById('signup-email').value;
+  const password = document.getElementById('signup-password').value;
+  const confirmPassword = document.getElementById('signup-confirm-password').value;
+  const errorDiv = document.getElementById('signup-error');
+
+  if (password !== confirmPassword) {
+    if (errorDiv) {
+      errorDiv.style.display = 'block';
+      errorDiv.textContent = 'Passwords do not match';
+    }
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ firstName, lastName, username, email, password })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      currentUser = data.user;
+      const signupModal = document.getElementById('signup-modal');
+      if (signupModal) signupModal.classList.add('hidden');
+      showNotification('Registration successful!', 'success');
+      renderUserInfo();
+      const loginBtn = document.getElementById('login-btn');
+      const signupBtn = document.getElementById('signup-btn');
+      const mobileLoginBtn = document.getElementById('mobile-login-btn');
+      const mobileSignupBtn = document.getElementById('mobile-signup-btn');
+      if (loginBtn) loginBtn.classList.add('hidden');
+      if (signupBtn) signupBtn.classList.add('hidden');
+      if (mobileLoginBtn) mobileLoginBtn.classList.add('hidden');
+      if (mobileSignupBtn) mobileSignupBtn.classList.add('hidden');
+    } else {
+      if (errorDiv) {
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = data.error || 'Registration failed';
+      }
+    }
+  } catch (error) {
+    if (errorDiv) {
+      errorDiv.style.display = 'block';
+      errorDiv.textContent = 'Server error during registration';
+    }
+  }
+}
+
+function switchToSignup() {
+  const loginModal = document.getElementById('login-modal');
+  const signupModal = document.getElementById('signup-modal');
+  if (loginModal) loginModal.classList.add('hidden');
+  if (signupModal) signupModal.classList.remove('hidden');
+}
+
+function switchToLogin() {
+  const signupModal = document.getElementById('signup-modal');
+  const loginModal = document.getElementById('login-modal');
+  if (signupModal) signupModal.classList.add('hidden');
+  if (loginModal) loginModal.classList.remove('hidden');
+}
+
+async function logout() {
+  try {
+    await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+    currentUser = null;
+    const userInfo = document.getElementById('user-info');
+    const loginBtn = document.getElementById('login-btn');
+    const signupBtn = document.getElementById('signup-btn');
+    const mobileLoginBtn = document.getElementById('mobile-login-btn');
+    const mobileSignupBtn = document.getElementById('mobile-signup-btn');
+    if (userInfo) userInfo.classList.add('hidden');
+    if (loginBtn) loginBtn.classList.remove('hidden');
+    if (signupBtn) signupBtn.classList.remove('hidden');
+    if (mobileLoginBtn) mobileLoginBtn.classList.remove('hidden');
+    if (mobileSignupBtn) mobileSignupBtn.classList.remove('hidden');
+    showNotification('Logout successful', 'success');
+    window.location.reload();
+  } catch (error) {
+    console.error('Logout failed:', error);
+    showNotification('Logout failed', 'error');
+  }
+}
+
+function showNotification(message, type) {
+  const notification = document.getElementById('notification');
+  if (notification) {
+    notification.textContent = message;
+    notification.className = `notification ${type} show`;
+    setTimeout(() => {
+      if (notification) notification.className = `notification ${type}`;
+    }, 3000);
+  }
 }
 
 function filterData(data) {
@@ -143,8 +362,10 @@ function resetFilters() {
   currentFilters.modelType = 'all';
   currentFilters.size = 'all';
   currentSort = { column: 'rank', direction: 'asc' };
-  document.getElementById('model-filter').value = 'all';
-  document.getElementById('size-filter').value = 'all';
+  const modelFilter = document.getElementById('model-filter');
+  const sizeFilter = document.getElementById('size-filter');
+  if (modelFilter) modelFilter.value = 'all';
+  if (sizeFilter) sizeFilter.value = 'all';
   renderLeaderboard();
 }
 
@@ -162,16 +383,20 @@ function getScoreClass(score, isOverall = false) {
 }
 
 function updateSortIcons() {
-  document.querySelectorAll('.sort-icon').forEach(icon => {
-    icon.className = 'sort-icon';
-    icon.textContent = '↕';
-  });
+  const sortIcons = document.querySelectorAll('.sort-icon');
+  if (sortIcons) {
+    sortIcons.forEach(icon => {
+      icon.className = 'sort-icon';
+      icon.textContent = '↕';
+    });
+  }
   const activeIcon = document.getElementById(currentSort.column + '-sort');
   if (activeIcon) {
     activeIcon.className = `sort-icon ${currentSort.direction}`;
     activeIcon.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
   }
 }
+
 function renderLeaderboard() {
   const filtered = filterData(leaderboardData);
   const sorted = sortData(filtered, currentSort.column, currentSort.direction);
@@ -187,7 +412,6 @@ function renderLeaderboard() {
         <td><div>${entry.modelName}</div><div>${entry.company}</div></td>
         <td>${entry.size}</td>
         <td><span class="${getScoreClass(entry.prerequisiteAccuracy)}">${entry.prerequisiteAccuracy}%</span></td>
-
       `;
       tbody.appendChild(row);
     });
@@ -218,7 +442,7 @@ function renderLeaderboard() {
 
 document.addEventListener('click', function(e) {
   const modal = document.getElementById('citation-modal');
-  if (e.target === modal) hideCitation();
+  if (modal && e.target === modal) hideCitation();
 });
 
 document.addEventListener('keydown', function(e) {

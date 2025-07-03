@@ -37,46 +37,37 @@ class AuthManager {
 
     // Setup event listeners
     setupEventListeners() {
-        // Login form
         const loginForm = document.getElementById('loginForm');
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => this.handleLogin(e));
         }
 
-        // Register form
         const registerForm = document.getElementById('registerForm');
         if (registerForm) {
             registerForm.addEventListener('submit', (e) => this.handleRegister(e));
         }
 
-        // Logout button
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (e) => this.handleLogout(e));
         }
 
-        // Show login modal
         const showLoginBtn = document.getElementById('showLoginBtn');
         if (showLoginBtn) {
             showLoginBtn.addEventListener('click', () => this.showLoginModal());
         }
 
-        // Show register modal
         const showRegisterBtn = document.getElementById('showRegisterBtn');
         if (showRegisterBtn) {
             showRegisterBtn.addEventListener('click', () => this.showRegisterModal());
         }
 
-        // Close modal buttons
         const closeButtons = document.querySelectorAll('.close-modal');
         closeButtons.forEach(btn => {
             btn.addEventListener('click', () => this.closeModals());
         });
 
-        // Switch between login and register
         const switchToRegister = document.getElementById('switchToRegister');
-        const switchToLogin = document.getElementById('switchToLogin');
-        
         if (switchToRegister) {
             switchToRegister.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -85,6 +76,7 @@ class AuthManager {
             });
         }
 
+        const switchToLogin = document.getElementById('switchToLogin');
         if (switchToLogin) {
             switchToLogin.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -93,12 +85,10 @@ class AuthManager {
             });
         }
 
-        // Close modal when clicking outside
         window.addEventListener('click', (e) => {
             const loginModal = document.getElementById('loginModal');
             const registerModal = document.getElementById('registerModal');
-            
-            if (e.target === loginModal || e.target === registerModal) {
+            if ((loginModal && e.target === loginModal) || (registerModal && e.target === registerModal)) {
                 this.closeModals();
             }
         });
@@ -118,9 +108,7 @@ class AuthManager {
             
             const response = await fetch('/api/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({ email, password })
             });
@@ -159,7 +147,6 @@ class AuthManager {
             lastName: formData.get('lastName')
         };
 
-        // Validate password confirmation
         const confirmPassword = formData.get('confirmPassword');
         if (userData.password !== confirmPassword) {
             this.showError('registerForm', 'Passwords do not match');
@@ -171,9 +158,7 @@ class AuthManager {
             
             const response = await fetch('/api/register', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(userData)
             });
@@ -226,42 +211,25 @@ class AuthManager {
         const userInfo = document.getElementById('userInfo');
         
         if (this.isAuthenticated && this.currentUser) {
-            // Show user info, hide auth buttons
-            if (authContainer) {
-                authContainer.style.display = 'none';
-            }
-            
+            if (authContainer) authContainer.style.display = 'none';
             if (userInfo) {
                 userInfo.style.display = 'block';
                 userInfo.innerHTML = `
                     <div class="user-info-content">
-                        <div class="user-avatar">
-                            ${this.currentUser.firstName.charAt(0)}${this.currentUser.lastName.charAt(0)}
-                        </div>
+                        <div class="user-avatar">${this.currentUser.firstName.charAt(0)}${this.currentUser.lastName.charAt(0)}</div>
                         <div class="user-details">
                             <div class="user-name">${this.currentUser.firstName} ${this.currentUser.lastName}</div>
                             <div class="user-username">@${this.currentUser.username}</div>
                             <div class="user-email">${this.currentUser.email}</div>
                         </div>
                         <button id="logoutBtn" class="logout-btn">Logout</button>
-                    </div>
-                `;
-                
-                // Re-attach logout event listener
+                    </div>`;
                 const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', (e) => this.handleLogout(e));
-                }
+                if (logoutBtn) logoutBtn.addEventListener('click', (e) => this.handleLogout(e));
             }
         } else {
-            // Show auth buttons, hide user info
-            if (authContainer) {
-                authContainer.style.display = 'block';
-            }
-            
-            if (userInfo) {
-                userInfo.style.display = 'none';
-            }
+            if (authContainer) authContainer.style.display = 'block';
+            if (userInfo) userInfo.style.display = 'none';
         }
     }
 
@@ -287,11 +255,9 @@ class AuthManager {
     closeModals() {
         const modals = document.querySelectorAll('.auth-modal');
         modals.forEach(modal => {
-            modal.style.display = 'none';
+            if (modal) modal.style.display = 'none';
         });
         document.body.style.overflow = 'auto';
-        
-        // Clear any error messages
         this.clearErrors();
     }
 
@@ -339,13 +305,12 @@ class AuthManager {
     clearErrors() {
         const errorMessages = document.querySelectorAll('.error-message');
         errorMessages.forEach(error => {
-            error.style.display = 'none';
+            if (error) error.style.display = 'none';
         });
     }
 
     // Show success/info message
     showMessage(message, type = 'info') {
-        // Create or update notification
         let notification = document.getElementById('notification');
         if (!notification) {
             notification = document.createElement('div');
@@ -353,13 +318,10 @@ class AuthManager {
             notification.className = 'notification';
             document.body.appendChild(notification);
         }
-        
         notification.textContent = message;
         notification.className = `notification ${type} show`;
-        
-        // Auto hide after 3 seconds
         setTimeout(() => {
-            notification.classList.remove('show');
+            if (notification) notification.classList.remove('show');
         }, 3000);
     }
 }
