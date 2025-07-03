@@ -1,4 +1,5 @@
 require('dotenv').config();
+console.log('Using MONGODB_URI:', process.env.MONGODB_URI); // Debug log
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
@@ -14,7 +15,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/eduvlm-bench';
-const CSV_PATH = 'D:\\eduvlm-app\\gsm8k_wrong_answers_with_missing_prerequisites_enhanced (1).csv';
+// Kept the original Windows path with minimal adjustment for consistency
+const CSV_PATH = 'D:/eduvlm-app/gsm8k_wrong_answers_with_missing_prerequisites_enhanced (1).csv'.replace(/\\/g, '/');
 
 // Middleware
 app.use(cors({
@@ -26,13 +28,20 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(__dirname));
 
-// MongoDB Connection
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+// MongoDB Connection with retry
+const connectWithRetry = () => {
+  mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // Reduce timeout for faster failure detection
+  })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => {
+    console.error('MongoDB connection error:', err.message);
+    setTimeout(connectWithRetry, 5000); // Retry every 5 seconds
+  });
+};
+connectWithRetry();
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -88,18 +97,14 @@ const Annotation = mongoose.model('Annotation', annotationSchema);
 const authenticateToken = async (req, res, next) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-    
     if (!token) {
       return res.status(401).json({ error: 'Access denied. No token provided.' });
     }
-
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = await User.findById(decoded.userId).select('-password');
-    
     if (!user) {
       return res.status(401).json({ error: 'Invalid token.' });
     }
-
     req.user = user;
     next();
   } catch (error) {
@@ -125,8 +130,8 @@ fs.createReadStream(CSV_PATH)
     console.log('CSV file loaded successfully with', questions.length, 'questions');
   })
   .on('error', (err) => {
-    console.error('Error loading CSV:', err);
-    questions = []; // Ensure questions is empty if CSV fails
+    console.error('Error loading CSV:', err.message);
+    questions = []; // Reset to empty array on error
   });
 
 // Routes
@@ -147,22 +152,18 @@ app.post('/api/register', [
 
     const { username, email, password, firstName, lastName } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({
       $or: [{ email }, { username }]
     });
-
     if (existingUser) {
       return res.status(400).json({ 
         error: existingUser.email === email ? 'Email already registered' : 'Username already taken' 
       });
     }
 
-    // Hash password
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create user
     const user = new User({
       username,
       email,
@@ -170,13 +171,9 @@ app.post('/api/register', [
       firstName,
       lastName
     });
-
     await user.save();
 
-    // Generate JWT token
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
-
-    // Set cookie
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -195,7 +192,7 @@ app.post('/api/register', [
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Registration error:', error.message);
     res.status(500).json({ error: 'Server error during registration' });
   }
 });
@@ -212,23 +209,17 @@ app.post('/api/login', [
     }
 
     const { email, password } = req.body;
-
-    // Find user
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    // Generate JWT token
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
-
-    // Set cookie
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -247,7 +238,7 @@ app.post('/api/login', [
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login error:', error.message);
     res.status(500).json({ error: 'Server error during login' });
   }
 });
@@ -297,7 +288,7 @@ app.post('/api/annotations', authenticateToken, [
     await annotation.save();
     res.status(201).json({ message: 'Annotation saved successfully' });
   } catch (error) {
-    console.error('Annotation save error:', error);
+    console.error('Annotation save error:', error.message);
     res.status(500).json({ error: 'Server error saving annotation' });
   }
 });
