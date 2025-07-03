@@ -1,5 +1,4 @@
 require('dotenv').config();
-
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
@@ -8,11 +7,14 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { body, validationResult } = require('express-validator');
 const path = require('path');
+const csv = require('csv-parser');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/eduvlm-bench';
+const CSV_PATH = 'D:\\eduvlm-app\\gsm8k_wrong_answers_with_missing_prerequisites_enhanced (1).csv';
 
 // Middleware
 app.use(cors({
@@ -70,7 +72,17 @@ const userSchema = new mongoose.Schema({
   }
 });
 
+// Annotation Schema
+const annotationSchema = new mongoose.Schema({
+  question_id: { type: String, required: true },
+  question: { type: String, required: true },
+  annotated_prerequisite: { type: String, required: true },
+  annotator_name: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
 const User = mongoose.model('User', userSchema);
+const Annotation = mongoose.model('Annotation', annotationSchema);
 
 // Auth Middleware
 const authenticateToken = async (req, res, next) => {
@@ -91,9 +103,31 @@ const authenticateToken = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    console.error('Token verification error:', error.message);
     res.status(401).json({ error: 'Invalid token.' });
   }
 };
+
+// Load CSV data
+let questions = [];
+fs.createReadStream(CSV_PATH)
+  .pipe(csv())
+  .on('data', (row) => {
+    questions.push({
+      question_id: row.question_id,
+      question: row.question,
+      correct_answer: row.correct_answer,
+      all_prerequisites: row.all_prerequisites,
+      wrong_answer: row.wrong_answer
+    });
+  })
+  .on('end', () => {
+    console.log('CSV file loaded successfully with', questions.length, 'questions');
+  })
+  .on('error', (err) => {
+    console.error('Error loading CSV:', err);
+    questions = []; // Ensure questions is empty if CSV fails
+  });
 
 // Routes
 
@@ -237,6 +271,37 @@ app.get('/api/user', authenticateToken, (req, res) => {
   });
 });
 
+// Get questions
+app.get('/api/questions', authenticateToken, (req, res) => {
+  const limit = parseInt(req.query.limit) || 10;
+  if (questions.length === 0) {
+    return res.status(500).json({ error: 'No questions available. Check CSV loading.' });
+  }
+  res.json(questions.slice(0, limit));
+});
+
+// Save annotation
+app.post('/api/annotations', authenticateToken, [
+  body('question_id').notEmpty().withMessage('Question ID is required'),
+  body('question').notEmpty().withMessage('Question is required'),
+  body('annotated_prerequisite').notEmpty().withMessage('Annotated prerequisite is required'),
+  body('annotator_name').notEmpty().withMessage('Annotator name is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const annotation = new Annotation(req.body);
+    await annotation.save();
+    res.status(201).json({ message: 'Annotation saved successfully' });
+  } catch (error) {
+    console.error('Annotation save error:', error);
+    res.status(500).json({ error: 'Server error saving annotation' });
+  }
+});
+
 // Serve HTML files
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -244,6 +309,10 @@ app.get('/', (req, res) => {
 
 app.get('/leaderboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'leaderboard.html'));
+});
+
+app.get('/annotator', (req, res) => {
+  res.sendFile(path.join(__dirname, 'annotator.html'));
 });
 
 app.listen(PORT, () => {

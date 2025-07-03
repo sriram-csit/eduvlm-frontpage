@@ -29,7 +29,11 @@
                 </div>
                 
                 <!-- Desktop Navigation -->
-
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="nav-link active">Research</a>
+                    <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+                    <a href="annotator.html" class="nav-link">Annotator</a>
+                </div>
                 
                 <!-- Desktop Download Button & Auth -->
                 <div class="hidden md:flex items-center space-x-3">
@@ -39,14 +43,6 @@
                         </svg>
                         Download
                     </button>
-                                    <div class="hidden md:flex space-x-6">
-                    <a href="index.html" class="nav-link active">
-                        Research
-                    </a>
-                    <a href="leaderboard.html" class="nav-link">
-                        Leaderboard
-                    </a>
-                </div>
                     <!-- Authentication Section -->
                     <div id="authContainer" class="auth-container flex space-x-2">
                         <button id="showLoginBtn" class="auth-btn login-btn bg-academic-blue text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Login</button>
@@ -70,30 +66,26 @@
             </div>
             
             <!-- Mobile Navigation Menu -->
-
-            <!-- Mobile Navigation Menu -->
             <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200 py-4">
                 <div class="space-y-3">
                     <a href="index.html" class="block nav-link-mobile active">Research</a>
-                        <a href="leaderboard.html" class="block nav-link-mobile">Leaderboard</a>
-
-                        <!-- Mobile Auth Buttons -->
-                        <button id="mobileLoginBtn" onclick="document.getElementById('loginModal').style.display='flex'" class="block w-full bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
-                             Login
-                        </button>
-                        <button id="mobileRegisterBtn" onclick="document.getElementById('registerModal').style.display='flex'" class="block w-full border border-academic-blue text-academic-blue hover:bg-gray-50 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
-                            Sign Up
-                        </button>
-
-                        <button onclick="downloadPaper()" class="w-full bg-accent-amber text-white hover:bg-yellow-500 transition-colors font-medium px-4 py-2 rounded-md flex items-center justify-center text-sm mt-4">
-                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                            Download Paper
-                        </button>
+                    <a href="leaderboard.html" class="block nav-link-mobile">Leaderboard</a>
+                    <a href="annotator.html" class="block nav-link-mobile">Annotator</a>
+                    <!-- Mobile Auth Buttons -->
+                    <button id="mobileLoginBtn" onclick="document.getElementById('loginModal').style.display='flex'" class="block w-full bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
+                        Login
+                    </button>
+                    <button id="mobileRegisterBtn" onclick="document.getElementById('registerModal').style.display='flex'" class="block w-full border border-academic-blue text-academic-blue hover:bg-gray-50 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
+                        Sign Up
+                    </button>
+                    <button onclick="downloadPaper()" class="w-full bg-accent-amber text-white hover:bg-yellow-500 transition-colors font-medium px-4 py-2 rounded-md flex items-center justify-center text-sm mt-4">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Download Paper
+                    </button>
                 </div>
             </div>
-
         </div>
     </nav>
 
@@ -228,8 +220,6 @@
         </section>
     </div>
 
-
-
     <!-- Footer -->
     <footer class="bg-light-grey border-t border-gray-200 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -259,6 +249,11 @@
                         <li>
                             <a href="#" onclick="showPage('leaderboard')" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
                                 Model Leaderboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="annotator.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                                Annotator
                             </a>
                         </li>
                     </ul>
@@ -328,13 +323,12 @@
         </div>
     </div>
 
-    <!-- JavaScript -->
     <!-- Login Modal -->
     <div id="loginModal" class="auth-modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Login to EduVLM-Bench</h2>
-                <button class="close-modal">&times;</button>
+                <button class="close-modal">×</button>
             </div>
             <form id="loginForm" class="auth-form">
                 <div class="form-group">
@@ -358,7 +352,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Sign Up for EduVLM-Bench</h2>
-                <button class="close-modal">&times;</button>
+                <button class="close-modal">×</button>
             </div>
             <form id="registerForm" class="auth-form">
                 <div class="form-row">
