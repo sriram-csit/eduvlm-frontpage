@@ -23,5 +23,13 @@
     "nodemon": "^3.0.1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sriram2226/eduvlm-frontpage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Sriram2226/eduvlm-frontpage/issues"
+  },
+  "homepage": "https://github.com/Sriram2226/eduvlm-frontpage#readme"
 }

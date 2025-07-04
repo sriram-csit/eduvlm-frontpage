@@ -26,6 +26,14 @@ fetch(spreadsheetURL)
       };
     });
 
+    // Sort by overallScore descending
+    leaderboardData.sort((a, b) => b.overallScore - a.overallScore);
+
+    // Assign ranks after sorting
+    leaderboardData.forEach((item, index) => {
+      item.rank = index + 1;
+    });
+
     renderLeaderboard();
   })
   .catch(error => {
