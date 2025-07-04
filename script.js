@@ -348,7 +348,7 @@ function switchToLogin() {
 // Filter leaderboard data
 function filterData(data) {
   return data.filter(entry => {
-    const matchesType = currentFilters.modelType === 'all' || entry.modelName.toLowerCase().includes(currentFilters.modelType.toLowerCase());
+    const matchesType = currentFilters.modelType === 'all' || entry.modelType.toLowerCase() === currentFilters.modelType.toLowerCase();
     const matchesSize = currentFilters.size === 'all' || entry.size === currentFilters.size;
     return matchesType && matchesSize;
   });
@@ -396,9 +396,9 @@ function getRankBadgeClass(rank) {
 
 // Get score class
 function getScoreClass(score, isOverall = false) {
-  if (isOverall && score >= 75) return 'score-overall-excellent';
-  if (score >= 80) return 'score-excellent';
-  if (score >= 70) return 'score-good';
+  if (isOverall && score >= 35) return 'score-overall-excellent';
+  if (score >= 30) return 'score-excellent';
+  if (score >= 20) return 'score-good';
   return 'score-average';
 }
 
@@ -417,8 +417,6 @@ function updateSortIcons() {
     activeIcon.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
   }
 }
-
-// Render leaderboard
 function renderLeaderboard() {
   const filtered = filterData(leaderboardData);
   const sorted = sortData(filtered, currentSort.column, currentSort.direction);
@@ -462,6 +460,7 @@ function renderLeaderboard() {
         </div>
         <div class="mobile-card-metrics">
           <div><div>Notes</div><div>${entry.notes}</div></div>
+          <div><div>Notes</div><div>${entry.notes}</div></div>
         </div>
       `;
 
@@ -469,6 +468,7 @@ function renderLeaderboard() {
       mobileContainer.appendChild(card);
     });
   }
+
   updateSortIcons();
 }
 
