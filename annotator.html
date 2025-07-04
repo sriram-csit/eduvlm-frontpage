@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduVLM-Bench - Question Annotator</title>
     <meta name="description" content="Select and annotate prerequisite concepts for educational questions.">
-    
+
     <!-- Tailwind CSS (Development only) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:wght@400;600;700&display=stylesheet">
-    
+
     <!-- Feather Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -30,14 +30,14 @@
                         EduVLM-Bench
                     </a>
                 </div>
-                
+
                 <!-- Desktop Navigation -->
                 <div class="hidden md:flex space-x-6">
                     <a href="index.html" class="nav-link">Research</a>
                     <a href="leaderboard.html" class="nav-link">Leaderboard</a>
                     <a href="annotator.html" class="nav-link active">Annotator</a>
                 </div>
-                
+
                 <!-- Desktop Download Button & Auth -->
                 <div class="hidden md:flex items-center space-x-3">
                     <button onclick="downloadPaper()" class="bg-accent-amber text-white hover:bg-yellow-500 transition-colors font-medium px-4 py-2 rounded-md flex items-center text-sm">
@@ -51,7 +51,7 @@
                         <button id="showLoginBtn" class="auth-btn login-btn bg-academic-blue text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Login</button>
                         <button id="showRegisterBtn" class="auth-btn register-btn bg-white text-academic-blue border border-academic-blue hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors">Sign Up</button>
                     </div>
-                    
+
                     <!-- User Info Section (hidden by default) -->
                     <div id="userInfo" class="user-info" style="display: none;">
                         <!-- User info will be populated by JavaScript -->
@@ -67,7 +67,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Mobile Navigation Menu -->
             <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200 py-4">
                 <div class="space-y-3">
@@ -103,6 +103,16 @@
                     </h1>
                     <p class="text-lg max-w-4xl mx-auto leading-relaxed text-slate-grey">
                         Select and annotate prerequisite concepts for educational questions.
+                    </p>
+                </div>
+
+                <!-- Pipeline Overview -->
+                <div class="bg-white shadow-sm rounded-lg p-6 mb-8">
+                    <h3 class="text-xl font-semibold text-dark-slate mb-2">How This Annotator Works</h3>
+                    <p class="text-sm text-slate-grey leading-relaxed">
+                    This annotator tool is part of the EduVLM-Bench framework, designed to allow users to manually annotate prerequisite concepts for math word problems. 
+                    The process begins with selecting the number of questions to annotate, followed by loading questions (typically from the GSM8K dataset) along with their correct and incorrect answers. Users then select the most relevant prerequisite concept from a pre-generated list.
+                    Annotations are submitted to the server for research purposes, enabling the refinement of educational models. The tool ensures transparency by leveraging open-source data and providing clear feedback on each step.
                     </p>
                 </div>
 
@@ -199,7 +209,7 @@
             </div>
             <div class="border-t border-gray-300 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center">
                 <p class="text-sm text-slate-grey">
-                    © <span id="current-year"></span> EduVLM-Bench. All rights reserved.
+                    © <span id="current-year"></span> EduVLM-Bench. All rights reserved. This annotator uses Gemini 1.5 Flash for prerequisite suggestions.
                 </p>
                 <div class="flex space-x-6 mt-4 sm:mt-0">
                     <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">Privacy Policy</a>

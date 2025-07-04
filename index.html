@@ -12,7 +12,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:wght@400;600;700&display=stylesheet">
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
@@ -33,10 +33,7 @@
                     <a href="index.html" class="nav-link active">Research</a>
                     <a href="leaderboard.html" class="nav-link">Leaderboard</a>
                     <a href="annotator.html" class="nav-link">Annotator</a>
-                    <a href="prerequisite_detection.html" class="nav-link  font-medium">
-                     Prerequisite Detector
-                    </a>
-
+                    <a href="admin.html" id="admin-nav-link" class="nav-link hidden" data-admin-only>Admin</a>
                 </div>
                 
                 <!-- Desktop Download Button & Auth -->
@@ -49,12 +46,12 @@
                     </button>
                     <!-- Authentication Section -->
                     <div id="authContainer" class="auth-container flex space-x-2">
-                        <button id="showLoginBtn" class="auth-btn login-btn bg-academic-blue text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Login</button>
-                        <button id="showRegisterBtn" class="auth-btn register-btn bg-white text-academic-blue border border-academic-blue hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors">Sign Up</button>
+                        <button id="login-btn" class="auth-btn login-btn bg-academic-blue text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Login</button>
+                        <button id="signup-btn" class="auth-btn register-btn bg-white text-academic-blue border border-academic-blue hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors">Sign Up</button>
                     </div>
                     
                     <!-- User Info Section (hidden by default) -->
-                    <div id="userInfo" class="user-info" style="display: none;">
+                    <div id="user-info" class="user-info hidden">
                         <!-- User info will be populated by JavaScript -->
                     </div>
                 </div>
@@ -75,17 +72,12 @@
                     <a href="index.html" class="block nav-link-mobile active">Research</a>
                     <a href="leaderboard.html" class="block nav-link-mobile">Leaderboard</a>
                     <a href="annotator.html" class="block nav-link-mobile">Annotator</a>
-                    <a href="prerequisite_detection.html" class="block nav-link-mobile text-green-700 font-medium ">
-                        <!-- This link is hidden in mobile view -->
-                     Prerequisite Detector
-                    </a>
-
-
+                    <a href="admin.html" id="mobile-admin-nav-link" class="block nav-link-mobile hidden" data-admin-only>Admin</a>
                     <!-- Mobile Auth Buttons -->
-                    <button id="mobileLoginBtn" onclick="document.getElementById('loginModal').style.display='flex'" class="block w-full bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
+                    <button id="mobile-login-btn" class="block w-full bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
                         Login
                     </button>
-                    <button id="mobileRegisterBtn" onclick="document.getElementById('registerModal').style.display='flex'" class="block w-full border border-academic-blue text-academic-blue hover:bg-gray-50 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
+                    <button id="mobile-signup-btn" class="block w-full border border-academic-blue text-academic-blue hover:bg-gray-50 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
                         Sign Up
                     </button>
                     <button onclick="downloadPaper()" class="w-full bg-accent-amber text-white hover:bg-yellow-500 transition-colors font-medium px-4 py-2 rounded-md flex items-center justify-center text-sm mt-4">
@@ -116,31 +108,6 @@
                     </p>
                 </div>
 
-                <!-- Key Metrics -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12 md:mb-16">
-                    <div class="bg-light-grey rounded-lg p-6 md:p-8 text-center">
-                        <div class="text-3xl md:text-4xl font-bold mb-2 text-success-emerald">82.6%</div>
-                        <div class="font-medium text-slate-grey text-sm md:text-base">Concept Recall Rate</div>
-                        <div class="text-xs md:text-sm mt-2 text-slate-grey">
-                            Annotators accurately mapped student errors to missing prerequisite concepts
-                        </div>
-                    </div>
-                    <div class="bg-light-grey rounded-lg p-6 md:p-8 text-center">
-                        <div class="text-3xl md:text-4xl font-bold mb-2 text-academic-blue">74.3%</div>
-                        <div class="font-medium text-slate-grey text-sm md:text-base">Model Prerequisite Identification</div>
-                        <div class="text-xs md:text-sm mt-2 text-slate-grey">
-                            Top-performing models successfully identified relevant missing concepts
-                        </div>
-                    </div>
-                    <div class="bg-light-grey rounded-lg p-6 md:p-8 text-center">
-                        <div class="text-3xl md:text-4xl font-bold mb-2 text-accent-amber">61.7%</div>
-                        <div class="font-medium text-slate-grey text-sm md:text-base">Learning Path Quality Score</div>
-                        <div class="text-xs md:text-sm mt-2 text-slate-grey">
-                            Generated learning paths showed promising structure for conceptual coverage
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Quick Actions -->
                 <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-lg mx-auto">
                     <button onclick="downloadPaper()" class="bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-6 sm:px-8 py-3 rounded-md flex items-center justify-center text-sm sm:text-base">
@@ -165,8 +132,50 @@
             </div>
         </section>
 
-        <!-- Abstract Section -->
+        <!-- Prerequisite Detection Demo Section -->
         <section class="py-16 bg-light-grey">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold font-crimson mb-8 text-center text-academic-blue">
+                    Prerequisite Detection Demo
+                </h2>
+                <p class="text-lg max-w-3xl mx-auto leading-relaxed text-slate-grey mb-6 text-center">
+                    Discover how EduVLM-Bench identifies missing prerequisite concepts when a student or model struggles with a problem. This demo simulates the process of analyzing errors and suggesting learning paths using vision-language models.
+                </p>
+                <div class="bg-white shadow-sm rounded-lg p-8">
+                    <p class="text-lg text-dark-slate mb-4 text-center">
+                        The prerequisite detection process follows a simple three-step pipeline:
+                    </p>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-center">
+                            <div class="w-10 h-10 bg-academic-blue text-white rounded-full flex items-center justify-center font-semibold">1</div>
+                            <p class="text-sm text-dark-slate mt-2">Input Problem Data</p>
+                        </div>
+                        <div class="flex-1 h-px bg-gray-300 mx-4"></div>
+                        <div class="text-center">
+                            <div class="w-10 h-10 bg-academic-blue text-white rounded-full flex items-center justify-center font-semibold">2</div>
+                            <p class="text-sm text-dark-slate mt-2">Analyze Prerequisites</p>
+                        </div>
+                        <div class="flex-1 h-px bg-gray-300 mx-4"></div>
+                        <div class="text-center">
+                            <div class="w-10 h-10 bg-academic-blue text-white rounded-full flex items-center justify-center font-semibold">3</div>
+                            <p class="text-sm text-dark-slate mt-2">Display Results</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-grey text-center">This pipeline helps identify missing concepts to enhance learning outcomes.</p>
+                    <div class="mt-6 text-center">
+                        <a id="prereq-detection-btn" href="prerequisite_detection.html" class="bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-6 py-3 rounded-md flex items-center justify-center mx-auto">
+                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            Try Prerequisite Detection
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Abstract Section -->
+        <section class="py-16">
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-bold font-crimson mb-8 text-center text-academic-blue">
                     Abstract
@@ -183,13 +192,13 @@
         </section>
 
         <!-- Authors Section -->
-        <section class="py-16">
+        <section class="py-16 bg-light-grey">
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-bold font-crimson mb-8 text-center text-academic-blue">
                     Authors
                 </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="bg-light-grey rounded-lg p-5 text-center">
+                    <div class="bg-white rounded-lg p-5 text-center">
                         <div class="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3 flex items-center justify-center">
                             <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -198,7 +207,7 @@
                         <h3 class="font-semibold text-dark-slate text-sm">Arka Mukerjee</h3>
                         <p class="text-xs text-slate-grey">Lead Researcher</p>
                     </div>
-                    <div class="bg-light-grey rounded-lg p-5 text-center">
+                    <div class="bg-white rounded-lg p-5 text-center">
                         <div class="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3 flex items-center justify-center">
                             <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -207,7 +216,7 @@
                         <h3 class="font-semibold text-dark-slate text-sm">Sriram P</h3>
                         <p class="text-xs text-slate-grey">BE. CSE, Annamalai University</p>
                     </div>
-                    <div class="bg-light-grey rounded-lg p-5 text-center">
+                    <div class="bg-white rounded-lg p-5 text-center">
                         <div class="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3 flex items-center justify-center">
                             <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -216,7 +225,7 @@
                         <h3 class="font-semibold text-dark-slate text-sm">Abhisekh Padhy</h3>
                         <p class="text-xs text-slate-grey">B-Tech. IT, NIST University</p>
                     </div>
-                    <div class="bg-light-grey rounded-lg p-5 text-center">
+                    <div class="bg-white rounded-lg p-5 text-center">
                         <div class="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3 flex items-center justify-center">
                             <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -231,7 +240,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-light-grey border-t border-gray-200 mt-auto">
+    <footer class="bg-white border-t border-gray-200 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="grid md:grid-cols-4 gap-8">
                 <!-- About Section -->
@@ -267,8 +276,8 @@
                             </a>
                         </li>
                         <li>
-                            <a href="prerequisite_detection.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
-                                Prerequisite Detection
+                            <a href="admin.html" id="footer-admin-link" class="text-sm text-slate-grey hover:text-academic-blue transition-colors hidden" data-admin-only>
+                                Admin
                             </a>
                         </li>
                     </ul>
@@ -339,72 +348,83 @@
     </div>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="auth-modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Login to EduVLM-Bench</h2>
-                <button class="close-modal">×</button>
+    <div id="login-modal" class="auth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Login to EduVLM-Bench</h2>
+                <button class="close-modal text-2xl cursor-pointer" onclick="document.getElementById('login-modal').classList.add('hidden')">×</button>
             </div>
-            <form id="loginForm" class="auth-form">
-                <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" name="email" required>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="login-email" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" name="password" required>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="login-password" name="password" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <button type="submit" class="submit-btn">Login</button>
-                <p class="switch-auth">
-                    Don't have an account? <a href="#" id="switchToRegister">Sign up</a>
-                </p>
+                <div id="login-error" class="text-red-500 text-sm hidden"></div>
+                <button type="submit" id="login-submit" class="w-full bg-academic-blue text-white p-2 rounded-md hover:bg-blue-700">Login</button>
+                <p class="text-center text-sm">Don't have an account? <a href="#" onclick="switchToSignup()" class="text-academic-blue hover:underline">Sign up</a></p>
             </form>
         </div>
     </div>
 
     <!-- Register Modal -->
-    <div id="registerModal" class="auth-modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Sign Up for EduVLM-Bench</h2>
-                <button class="close-modal">×</button>
+    <div id="signup-modal" class="auth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Sign Up for EduVLM-Bench</h2>
+                <button class="close-modal text-2xl cursor-pointer" onclick="document.getElementById('signup-modal').classList.add('hidden')">×</button>
             </div>
-            <form id="registerForm" class="auth-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="firstName">First Name</label>
-                        <input type="text" id="firstName" name="firstName" required>
+            <form id="signup-form" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="signup-firstName" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" id="signup-firstName" name="firstName" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                     </div>
-                    <div class="form-group">
-                        <label for="lastName">Last Name</label>
-                        <input type="text" id="lastName" name="lastName" required>
+                    <div>
+                        <label for="signup-lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" id="signup-lastName" name="lastName" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required minlength="3" maxlength="20">
+                <div>
+                    <label for="signup-username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="signup-username" name="username" required minlength="3" maxlength="20" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <div class="form-group">
-                    <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" name="email" required>
+                <div>
+                    <label for="signup-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="signup-email" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <div class="form-group">
-                    <label for="registerPassword">Password</label>
-                    <input type="password" id="registerPassword" name="password" required minlength="6">
+                <div>
+                    <label for="signup-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="signup-password" name="password" required minlength="6" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+                <div>
+                    <label for="signup-confirm-password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" name="confirmPassword" required minlength="6" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <button type="submit" class="submit-btn">Register</button>
-                <p class="switch-auth">
-                    Already have an account? <a href="#" id="switchToLogin">Login</a>
-                </p>
+                <div id="signup-error" class="text-red-500 text-sm hidden"></div>
+                <button type="submit" id="signup-submit" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Register</button>
+                <p class="text-center text-sm">Already have an account? <a href="#" onclick="switchToLogin()" class="text-academic-blue hover:underline">Login</a></p>
             </form>
         </div>
     </div>
 
     <script src="script.js"></script>
     <script src="auth.js"></script>
+    <script>
+        // Update current year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Show admin link if user is admin
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.authManager && window.authManager.isAuthenticated && window.authManager.currentUser.isAdmin) {
+                document.getElementById('admin-nav-link').classList.remove('hidden');
+                document.getElementById('mobile-admin-nav-link').classList.remove('hidden');
+                document.getElementById('footer-admin-link').classList.remove('hidden');
+            }
+        });
+    </script>
 </body>
 </html>
