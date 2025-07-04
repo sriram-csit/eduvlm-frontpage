@@ -1,3 +1,4 @@
+
 // Authentication JavaScript for frontend
 class AuthManager {
     constructor() {
@@ -19,14 +20,16 @@ class AuthManager {
                 method: 'GET',
                 credentials: 'include'
             });
-
+            console.log('Auth check response:', response.status); // Debug log
             if (response.ok) {
                 const data = await response.json();
                 this.currentUser = data.user;
                 this.isAuthenticated = true;
+                console.log('User authenticated:', { username: this.currentUser.username, isAdmin: this.currentUser.isAdmin }); // Debug log
             } else {
                 this.currentUser = null;
                 this.isAuthenticated = false;
+                console.log('User not authenticated'); // Debug log
             }
         } catch (error) {
             console.error('Auth check failed:', error);
@@ -37,54 +40,56 @@ class AuthManager {
 
     // Setup event listeners
     setupEventListeners() {
-        // Login form
-        const loginForm = document.getElementById('loginForm');
+        const loginForm = document.getElementById('login-form');
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => this.handleLogin(e));
         }
 
-        // Register form
-        const registerForm = document.getElementById('registerForm');
-        if (registerForm) {
-            registerForm.addEventListener('submit', (e) => this.handleRegister(e));
+        const signupForm = document.getElementById('signup-form');
+        if (signupForm) {
+            signupForm.addEventListener('submit', (e) => this.handleRegister(e));
         }
 
-        // Logout button
-        const logoutBtn = document.getElementById('logoutBtn');
+        const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (e) => this.handleLogout(e));
         }
 
-        // Show login modal
-        const showLoginBtn = document.getElementById('showLoginBtn');
-        if (showLoginBtn) {
-            showLoginBtn.addEventListener('click', () => this.showLoginModal());
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', () => this.showLoginModal());
         }
 
-        // Show register modal
-        const showRegisterBtn = document.getElementById('showRegisterBtn');
-        if (showRegisterBtn) {
-            showRegisterBtn.addEventListener('click', () => this.showRegisterModal());
+        const signupBtn = document.getElementById('signup-btn');
+        if (signupBtn) {
+            signupBtn.addEventListener('click', () => this.showRegisterModal());
         }
 
-        // Close modal buttons
+        const mobileLoginBtn = document.getElementById('mobile-login-btn');
+        if (mobileLoginBtn) {
+            mobileLoginBtn.addEventListener('click', () => this.showLoginModal());
+        }
+
+        const mobileSignupBtn = document.getElementById('mobile-signup-btn');
+        if (mobileSignupBtn) {
+            mobileSignupBtn.addEventListener('click', () => this.showRegisterModal());
+        }
+
         const closeButtons = document.querySelectorAll('.close-modal');
         closeButtons.forEach(btn => {
             btn.addEventListener('click', () => this.closeModals());
         });
 
-        // Switch between login and register
-        const switchToRegister = document.getElementById('switchToRegister');
-        const switchToLogin = document.getElementById('switchToLogin');
-        
-        if (switchToRegister) {
-            switchToRegister.addEventListener('click', (e) => {
+        const switchToSignup = document.getElementById('switchToSignup');
+        if (switchToSignup) {
+            switchToSignup.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.closeModals();
                 this.showRegisterModal();
             });
         }
 
+        const switchToLogin = document.getElementById('switchToLogin');
         if (switchToLogin) {
             switchToLogin.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -93,12 +98,10 @@ class AuthManager {
             });
         }
 
-        // Close modal when clicking outside
         window.addEventListener('click', (e) => {
-            const loginModal = document.getElementById('loginModal');
-            const registerModal = document.getElementById('registerModal');
-            
-            if (e.target === loginModal || e.target === registerModal) {
+            const loginModal = document.getElementById('login-modal');
+            const signupModal = document.getElementById('signup-modal');
+            if ((loginModal && e.target === loginModal) || (signupModal && e.target === signupModal)) {
                 this.closeModals();
             }
         });
@@ -114,18 +117,18 @@ class AuthManager {
         const password = formData.get('password');
 
         try {
-            this.showLoading('loginForm');
+            this.showLoading('login-form');
+            console.log('Attempting login with:', { email }); // Debug log
             
             const response = await fetch('/api/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({ email, password })
             });
 
             const data = await response.json();
+            console.log('Login response:', response.status, data); // Debug log
 
             if (response.ok) {
                 this.currentUser = data.user;
@@ -134,14 +137,16 @@ class AuthManager {
                 this.updateUI();
                 this.showMessage('Login successful!', 'success');
                 form.reset();
+                // Refresh page to update detection UI
+                window.location.reload();
             } else {
-                this.showError('loginForm', data.error || 'Login failed');
+                this.showError('login-form', data.error || 'Login failed');
             }
         } catch (error) {
             console.error('Login error:', error);
-            this.showError('loginForm', 'Network error. Please try again.');
+            this.showError('login-form', 'Network error. Please try again.');
         } finally {
-            this.hideLoading('loginForm');
+            this.hideLoading('login-form');
         }
     }
 
@@ -159,26 +164,25 @@ class AuthManager {
             lastName: formData.get('lastName')
         };
 
-        // Validate password confirmation
         const confirmPassword = formData.get('confirmPassword');
         if (userData.password !== confirmPassword) {
-            this.showError('registerForm', 'Passwords do not match');
+            this.showError('signup-form', 'Passwords do not match');
             return;
         }
 
         try {
-            this.showLoading('registerForm');
+            this.showLoading('signup-form');
+            console.log('Attempting registration with:', { email: userData.email }); // Debug log
             
             const response = await fetch('/api/register', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(userData)
             });
 
             const data = await response.json();
+            console.log('Register response:', response.status, data); // Debug log
 
             if (response.ok) {
                 this.currentUser = data.user;
@@ -187,15 +191,17 @@ class AuthManager {
                 this.updateUI();
                 this.showMessage('Registration successful!', 'success');
                 form.reset();
+                // Refresh page to update detection UI
+                window.location.reload();
             } else {
                 const errorMsg = data.error || (data.errors && data.errors[0]?.msg) || 'Registration failed';
-                this.showError('registerForm', errorMsg);
+                this.showError('signup-form', errorMsg);
             }
         } catch (error) {
             console.error('Registration error:', error);
-            this.showError('registerForm', 'Network error. Please try again.');
+            this.showError('signup-form', 'Network error. Please try again.');
         } finally {
-            this.hideLoading('registerForm');
+            this.hideLoading('signup-form');
         }
     }
 
@@ -214,71 +220,74 @@ class AuthManager {
                 this.isAuthenticated = false;
                 this.updateUI();
                 this.showMessage('Logged out successfully!', 'success');
+                // Refresh page to update detection UI
+                window.location.reload();
             }
         } catch (error) {
             console.error('Logout error:', error);
+            this.showMessage('Logout failed', 'error');
         }
     }
 
     // Update UI based on authentication status
     updateUI() {
         const authContainer = document.getElementById('authContainer');
-        const userInfo = document.getElementById('userInfo');
-        
+        const userInfo = document.getElementById('user-info');
+        const detectionContainer = document.getElementById('detection-container');
+        const loginPrompt = document.getElementById('login-prompt');
+        const adminNavLink = document.getElementById('admin-nav-link');
+        const mobileAdminNavLink = document.getElementById('mobile-admin-nav-link');
+        const footerAdminLink = document.getElementById('footer-admin-link');
+
+        console.log('Updating UI, isAuthenticated:', this.isAuthenticated, 'isAdmin:', this.currentUser?.isAdmin); // Debug log
         if (this.isAuthenticated && this.currentUser) {
-            // Show user info, hide auth buttons
-            if (authContainer) {
-                authContainer.style.display = 'none';
-            }
-            
+            if (authContainer) authContainer.style.display = 'none';
             if (userInfo) {
-                userInfo.style.display = 'block';
+                userInfo.classList.remove('hidden');
                 userInfo.innerHTML = `
-                    <div class="user-info-content">
-                        <div class="user-avatar">
-                            ${this.currentUser.firstName.charAt(0)}${this.currentUser.lastName.charAt(0)}
-                        </div>
-                        <div class="user-details">
-                            <div class="user-name">${this.currentUser.firstName} ${this.currentUser.lastName}</div>
-                            <div class="user-username">@${this.currentUser.username}</div>
-                            <div class="user-email">${this.currentUser.email}</div>
-                        </div>
-                        <button id="logoutBtn" class="logout-btn">Logout</button>
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-gray-300 w-8 h-8 flex items-center justify-center rounded-full">${this.currentUser.firstName.charAt(0)}${this.currentUser.lastName.charAt(0)}</span>
+                        <span class="text-sm font-medium">Welcome, ${this.currentUser.username}</span>
                     </div>
+                    <button id="logout-btn" class="ml-2 text-sm text-academic-blue hover:underline">Logout</button>
                 `;
-                
-                // Re-attach logout event listener
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', (e) => this.handleLogout(e));
-                }
+                const logoutBtn = document.getElementById('logout-btn');
+                if (logoutBtn) logoutBtn.addEventListener('click', (e) => this.handleLogout(e));
+            }
+            if (detectionContainer) detectionContainer.style.display = 'block';
+            if (loginPrompt) loginPrompt.style.display = 'none';
+            // Show admin links if user is admin
+            if (this.currentUser.isAdmin) {
+                if (adminNavLink) adminNavLink.classList.remove('hidden');
+                if (mobileAdminNavLink) mobileAdminNavLink.classList.remove('hidden');
+                if (footerAdminLink) footerAdminLink.classList.remove('hidden');
             }
         } else {
-            // Show auth buttons, hide user info
-            if (authContainer) {
-                authContainer.style.display = 'block';
-            }
-            
-            if (userInfo) {
-                userInfo.style.display = 'none';
-            }
+            if (authContainer) authContainer.style.display = 'flex';
+            if (userInfo) userInfo.classList.add('hidden');
+            if (detectionContainer) detectionContainer.style.display = 'none';
+            if (loginPrompt) loginPrompt.style.display = 'block';
+            // Hide admin links
+            if (adminNavLink) adminNavLink.classList.add('hidden');
+            if (mobileAdminNavLink) mobileAdminNavLink.classList.add('hidden');
+            if (footerAdminLink) footerAdminLink.classList.add('hidden');
         }
     }
 
     // Show login modal
     showLoginModal() {
-        const modal = document.getElementById('loginModal');
+        const modal = document.getElementById('login-modal');
         if (modal) {
-            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
     }
 
     // Show register modal
     showRegisterModal() {
-        const modal = document.getElementById('registerModal');
+        const modal = document.getElementById('signup-modal');
         if (modal) {
-            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
     }
@@ -287,11 +296,9 @@ class AuthManager {
     closeModals() {
         const modals = document.querySelectorAll('.auth-modal');
         modals.forEach(modal => {
-            modal.style.display = 'none';
+            if (modal) modal.classList.add('hidden');
         });
         document.body.style.overflow = 'auto';
-        
-        // Clear any error messages
         this.clearErrors();
     }
 
@@ -314,7 +321,7 @@ class AuthManager {
             const submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.disabled = false;
-                const isLogin = formId === 'loginForm';
+                const isLogin = formId === 'login-form';
                 submitBtn.textContent = isLogin ? 'Login' : 'Register';
             }
         }
@@ -327,7 +334,7 @@ class AuthManager {
             let errorDiv = form.querySelector('.error-message');
             if (!errorDiv) {
                 errorDiv = document.createElement('div');
-                errorDiv.className = 'error-message';
+                errorDiv.className = 'error-message text-red-500 text-sm';
                 form.insertBefore(errorDiv, form.firstChild);
             }
             errorDiv.textContent = message;
@@ -339,13 +346,12 @@ class AuthManager {
     clearErrors() {
         const errorMessages = document.querySelectorAll('.error-message');
         errorMessages.forEach(error => {
-            error.style.display = 'none';
+            if (error) error.style.display = 'none';
         });
     }
 
     // Show success/info message
     showMessage(message, type = 'info') {
-        // Create or update notification
         let notification = document.getElementById('notification');
         if (!notification) {
             notification = document.createElement('div');
@@ -353,13 +359,10 @@ class AuthManager {
             notification.className = 'notification';
             document.body.appendChild(notification);
         }
-        
         notification.textContent = message;
         notification.className = `notification ${type} show`;
-        
-        // Auto hide after 3 seconds
         setTimeout(() => {
-            notification.classList.remove('show');
+            if (notification) notification.classList.remove('show');
         }, 3000);
     }
 }
