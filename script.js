@@ -33,7 +33,7 @@ fetch(spreadsheetURL)
     leaderboardData.forEach((item, index) => {
       item.rank = index + 1;
     });
-
+    populateFilterOptions();
     renderLeaderboard();
   })
   .catch(error => {
@@ -43,6 +43,46 @@ fetch(spreadsheetURL)
 
 let currentSort = { column: 'rank', direction: 'asc' };
 let currentFilters = { modelType: 'all', size: 'all' };
+
+// Dynamically populate filter options
+function populateFilterOptions() {
+  const modelFilter = document.getElementById('model-filter');
+  const sizeFilter = document.getElementById('size-filter');
+
+  const modelTypes = new Set();
+  const modelSizes = new Set();
+
+  leaderboardData.forEach(item => {
+    if (item.modelType) modelTypes.add(item.modelType);
+    if (item.modelSize) modelSizes.add(item.modelSize);
+  });
+
+  if (modelFilter) {
+    modelFilter.innerHTML = `<option value="all">All</option>` +
+      Array.from(modelTypes).map(type => `<option value="${type}">${type}</option>`).join('');
+    modelFilter.addEventListener('change', function(e) {
+      currentFilters.modelType = e.target.value;
+      renderLeaderboard();
+    });
+  }
+
+  if (sizeFilter) {
+    sizeFilter.innerHTML = `<option value="all">All</option>` +
+      Array.from(modelSizes).map(size => `<option value="${size}">${size}</option>`).join('');
+    sizeFilter.addEventListener('change', function(e) {
+      currentFilters.size = e.target.value;
+      renderLeaderboard();
+    });
+  }
+}
+
+function filterData(data) {
+  return data.filter(entry => {
+    const matchesType = currentFilters.modelType === 'all' || entry.modelType.toLowerCase() === currentFilters.modelType.toLowerCase();
+    const matchesSize = currentFilters.size === 'all' || entry.modelSize.trim().toLowerCase() === currentFilters.size.toLowerCase();
+    return matchesType && matchesSize;
+  });
+}
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
@@ -332,13 +372,13 @@ function switchToLogin() {
 }
 
 // Filter leaderboard data
-function filterData(data) {
-  return data.filter(entry => {
-    const matchesType = currentFilters.modelType === 'all' || entry.modelType.toLowerCase() === currentFilters.modelType.toLowerCase();
-    const matchesSize = currentFilters.size === 'all' || entry.size === currentFilters.size;
-    return matchesType && matchesSize;
-  });
-}
+// function filterData(data) {
+//   return data.filter(entry => {
+//     const matchesType = currentFilters.modelType === 'all' || entry.modelType.toLowerCase() === currentFilters.modelType.toLowerCase();
+//     const matchesSize = currentFilters.size === 'all' || entry.size === currentFilters.size;
+//     return matchesType && matchesSize;
+//   });
+// }
 
 // Sort leaderboard data
 function sortData(data, column, direction) {
