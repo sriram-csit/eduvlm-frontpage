@@ -1,5 +1,8 @@
+
 let leaderboardData = [];
 const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/1BiHQZ5-DpgB_RlrxC-w0q_zxD9Tj-YxYpG9vU01IPD8/gviz/tq?sheet=Sheet1';
+
+console.log('Loaded script.js version: 2025-07-04-v3'); // Debug to confirm script version
 
 fetch(spreadsheetURL)
   .then(res => res.text())
@@ -38,7 +41,24 @@ document.addEventListener('DOMContentLoaded', function() {
     yearElements.forEach(el => el.textContent = new Date().getFullYear());
   }
 
-  checkAuth();
+  // Use authManager for authentication check
+  if (window.authManager) {
+    window.authManager.checkAuthStatus().then(() => {
+      if (window.authManager.isAuthenticated) {
+        currentUser = window.authManager.currentUser;
+        renderUserInfo();
+      }
+    });
+  }
+
+  // Add click handler for prerequisite detection button
+  const prereqBtn = document.getElementById('prereq-detection-btn');
+  if (prereqBtn) {
+    prereqBtn.addEventListener('click', function(e) {
+      console.log('Prerequisite detection button clicked, navigating to prerequisite_detection.html');
+      window.location.href = 'prerequisite_detection.html'; // Force navigation
+    });
+  }
 
   if (document.getElementById('leaderboard-body') || document.getElementById('mobile-leaderboard')) {
     renderLeaderboard();
@@ -90,6 +110,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const signupSubmit = document.getElementById('signup-submit');
   if (signupSubmit) signupSubmit.addEventListener('click', signup);
+
+  // Add random question loader
+  const loadRandomBtn = document.getElementById('loadRandomBtn');
+  if (loadRandomBtn) {
+    loadRandomBtn.addEventListener('click', async () => {
+      try {
+        const response = await fetch(`/api/questions?random=1&t=${new Date().getTime()}`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const questionInput = document.getElementById('questionInput');
+          const correctAnswerInput = document.getElementById('correctAnswerInput');
+          const wrongAnswerInput = document.getElementById('wrongAnswerInput');
+          const questionDisplay = document.getElementById('questionDisplay');
+          const notification = document.getElementById('notification');
+
+          if (questionInput && correctAnswerInput && wrongAnswerInput && questionDisplay && data[0]) {
+            questionInput.value = data[0].question || '';
+            correctAnswerInput.value = data[0].correct_answer || '';
+            wrongAnswerInput.value = data[0].wrong_answer || '';
+            questionDisplay.textContent = data[0].question || 'No question loaded';
+            notification.textContent = 'Example question loaded successfully!';
+            notification.className = 'notification success show';
+            setTimeout(() => notification.className = 'notification success', 3000);
+          } else {
+            throw new Error('Invalid data format or missing elements');
+          }
+        } else {
+          console.error('Failed to load random question:', await response.json());
+          showNotification('Failed to load random question.', 'error');
+        }
+      } catch (error) {
+        console.error('Error loading random question:', error);
+        showNotification('Error loading random question.', 'error');
+      }
+    });
+  }
+
+  // Add prerequisite detection with Gemini Flash
+  const detectBtn = document.getElementById('detectBtn');
+  if (detectBtn) {
+    detectBtn.addEventListener('click', async () => {
+      const questionInput = document.getElementById('questionInput').value.trim();
+      const questionDisplay = document.getElementById('questionDisplay').textContent.trim();
+      const question = questionInput || questionDisplay || '';
+      const correctAnswer = document.getElementById('correctAnswerInput').value || '';
+      const wrongAnswer = document.getElementById('wrongAnswerInput').value || '';
+      if (!question) {
+        showNotification('Please enter a question or load a random one.', 'error');
+        return;
+      }
+      await detectPrerequisites(question, correctAnswer, wrongAnswer);
+    });
+  }
 });
 
 function toggleMobileMenu() {
@@ -156,14 +231,11 @@ async function checkAuth() {
     if (response.ok) {
       const data = await response.json();
       currentUser = data.user;
-      const loginBtn = document.getElementById('login-btn');
-      const signupBtn = document.getElementById('signup-btn');
-      const mobileLoginBtn = document.getElementById('mobile-login-btn');
-      const mobileSignupBtn = document.getElementById('mobile-signup-btn');
-      if (loginBtn) loginBtn.classList.add('hidden');
-      if (signupBtn) signupBtn.classList.add('hidden');
-      if (mobileLoginBtn) mobileLoginBtn.classList.add('hidden');
-      if (mobileSignupBtn) mobileSignupBtn.classList.add('hidden');
+      if (window.authManager) {
+        window.authManager.currentUser = data.user;
+        window.authManager.isAuthenticated = true;
+        window.authManager.updateUI();
+      }
       renderUserInfo();
     }
   } catch (error) {
@@ -204,18 +276,15 @@ async function login() {
     const data = await response.json();
     if (response.ok) {
       currentUser = data.user;
+      if (window.authManager) {
+        window.authManager.currentUser = data.user;
+        window.authManager.isAuthenticated = true;
+        window.authManager.updateUI();
+      }
       const loginModal = document.getElementById('login-modal');
       if (loginModal) loginModal.classList.add('hidden');
       showNotification('Login successful!', 'success');
       renderUserInfo();
-      const loginBtn = document.getElementById('login-btn');
-      const signupBtn = document.getElementById('signup-btn');
-      const mobileLoginBtn = document.getElementById('mobile-login-btn');
-      const mobileSignupBtn = document.getElementById('mobile-signup-btn');
-      if (loginBtn) loginBtn.classList.add('hidden');
-      if (signupBtn) signupBtn.classList.add('hidden');
-      if (mobileLoginBtn) mobileLoginBtn.classList.add('hidden');
-      if (mobileSignupBtn) mobileSignupBtn.classList.add('hidden');
     } else {
       if (errorDiv) {
         errorDiv.style.display = 'block';
@@ -258,18 +327,15 @@ async function signup() {
     const data = await response.json();
     if (response.ok) {
       currentUser = data.user;
+      if (window.authManager) {
+        window.authManager.currentUser = data.user;
+        window.authManager.isAuthenticated = true;
+        window.authManager.updateUI();
+      }
       const signupModal = document.getElementById('signup-modal');
       if (signupModal) signupModal.classList.add('hidden');
       showNotification('Registration successful!', 'success');
       renderUserInfo();
-      const loginBtn = document.getElementById('login-btn');
-      const signupBtn = document.getElementById('signup-btn');
-      const mobileLoginBtn = document.getElementById('mobile-login-btn');
-      const mobileSignupBtn = document.getElementById('mobile-signup-btn');
-      if (loginBtn) loginBtn.classList.add('hidden');
-      if (signupBtn) signupBtn.classList.add('hidden');
-      if (mobileLoginBtn) mobileLoginBtn.classList.add('hidden');
-      if (mobileSignupBtn) mobileSignupBtn.classList.add('hidden');
     } else {
       if (errorDiv) {
         errorDiv.style.display = 'block';
@@ -302,6 +368,11 @@ async function logout() {
   try {
     await fetch('/api/logout', { method: 'POST', credentials: 'include' });
     currentUser = null;
+    if (window.authManager) {
+      window.authManager.currentUser = null;
+      window.authManager.isAuthenticated = false;
+      window.authManager.updateUI();
+    }
     const userInfo = document.getElementById('user-info');
     const loginBtn = document.getElementById('login-btn');
     const signupBtn = document.getElementById('signup-btn');
@@ -448,3 +519,64 @@ document.addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') hideCitation();
 });
+
+// Updated function to detect prerequisites using Gemini Flash
+async function detectPrerequisites(question, correctAnswer, wrongAnswer) {
+  console.log('Detecting prerequisites for:', { question, correctAnswer, wrongAnswer }); // Debug log
+  const prerequisitesDisplay = document.getElementById('prerequisitesDisplay');
+  if (!prerequisitesDisplay) {
+    console.error('prerequisitesDisplay element not found in DOM');
+    showNotification('UI error: prerequisitesDisplay element not found.', 'error');
+    return;
+  }
+  // Clear previous content with a timestamp to track updates
+  prerequisitesDisplay.textContent = 'Loading prerequisites...';
+  console.log('Cleared prerequisitesDisplay at:', new Date().toISOString()); // Debug log
+  try {
+    const response = await fetch('/api/detect-prereqs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ question, correct_answer: correctAnswer, wrong_answer: wrongAnswer })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Prerequisite detection response:', data); // Debug log
+      // Validate response structure
+      if (!data || !data.all_prerequisites || !('single_missing_prerequisite' in data)) {
+        console.error('Invalid response structure:', data);
+        showNotification('Invalid response from server.', 'error');
+        prerequisitesDisplay.textContent = 'All Prerequisites: None, Missing Prerequisite: None';
+        return;
+      }
+      // Handle all_prerequisites
+      const allPrereqs = Array.isArray(data.all_prerequisites) && data.all_prerequisites.length > 0 
+        ? data.all_prerequisites.join(', ')
+        : 'None';
+      // Handle single_missing_prerequisite
+      const missingPrereq = typeof data.single_missing_prerequisite === 'string' && data.single_missing_prerequisite.trim() !== '' && data.single_missing_prerequisite !== 'None'
+        ? data.single_missing_prerequisite
+        : 'None';
+      console.log('Rendering prerequisites:', { allPrereqs, missingPrereq }); // Debug log
+      prerequisitesDisplay.innerHTML = `<div>All Prerequisites: ${allPrereqs}</div><div>Missing Prerequisite: ${missingPrereq}</div>`;
+      console.log('Updated prerequisitesDisplay at:', new Date().toISOString()); // Debug log
+      // Clear input fields if questionInput was used
+      const questionInput = document.getElementById('questionInput');
+      if (questionInput && questionInput.value) {
+        questionInput.value = '';
+        document.getElementById('correctAnswerInput').value = '';
+        document.getElementById('wrongAnswerInput').value = '';
+      }
+      showNotification('Prerequisites detected successfully!', 'success');
+    } else {
+      const errorData = await response.json();
+      console.error('Prerequisite detection failed:', errorData);
+      showNotification(errorData.error || 'Failed to detect prerequisites.', 'error');
+      prerequisitesDisplay.innerHTML = '<div>All Prerequisites: None</div><div>Missing Prerequisite: None</div>';
+    }
+  } catch (error) {
+    console.error('Error detecting prerequisites:', error);
+    showNotification('Error detecting prerequisites. Please try again.', 'error');
+    prerequisitesDisplay.innerHTML = '<div>All Prerequisites: None</div><div>Missing Prerequisite: None</div>';
+  }
+}

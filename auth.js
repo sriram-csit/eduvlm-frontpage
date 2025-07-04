@@ -19,7 +19,7 @@ class AuthManager {
                 method: 'GET',
                 credentials: 'include'
             });
-
+            console.log('Auth check response:', response.status); // Debug log
             if (response.ok) {
                 const data = await response.json();
                 this.currentUser = data.user;
@@ -105,6 +105,7 @@ class AuthManager {
 
         try {
             this.showLoading('loginForm');
+            console.log('Attempting login with:', { email }); // Debug log
             
             const response = await fetch('/api/login', {
                 method: 'POST',
@@ -114,6 +115,7 @@ class AuthManager {
             });
 
             const data = await response.json();
+            console.log('Login response:', response.status, data); // Debug log
 
             if (response.ok) {
                 this.currentUser = data.user;
@@ -122,6 +124,8 @@ class AuthManager {
                 this.updateUI();
                 this.showMessage('Login successful!', 'success');
                 form.reset();
+                // Refresh page to update detection UI
+                window.location.reload();
             } else {
                 this.showError('loginForm', data.error || 'Login failed');
             }
@@ -155,6 +159,7 @@ class AuthManager {
 
         try {
             this.showLoading('registerForm');
+            console.log('Attempting registration with:', { email: userData.email }); // Debug log
             
             const response = await fetch('/api/register', {
                 method: 'POST',
@@ -164,6 +169,7 @@ class AuthManager {
             });
 
             const data = await response.json();
+            console.log('Register response:', response.status, data); // Debug log
 
             if (response.ok) {
                 this.currentUser = data.user;
@@ -172,6 +178,8 @@ class AuthManager {
                 this.updateUI();
                 this.showMessage('Registration successful!', 'success');
                 form.reset();
+                // Refresh page to update detection UI
+                window.location.reload();
             } else {
                 const errorMsg = data.error || (data.errors && data.errors[0]?.msg) || 'Registration failed';
                 this.showError('registerForm', errorMsg);
@@ -199,6 +207,8 @@ class AuthManager {
                 this.isAuthenticated = false;
                 this.updateUI();
                 this.showMessage('Logged out successfully!', 'success');
+                // Refresh page to update detection UI
+                window.location.reload();
             }
         } catch (error) {
             console.error('Logout error:', error);
@@ -206,45 +216,36 @@ class AuthManager {
     }
 
     // Update UI based on authentication status
-    updateUI() 
-    {
-    const authContainer = document.getElementById('authContainer');
-    const userInfo = document.getElementById('userInfo');
-    const prereqLinkDesktop = document.getElementById('prereqLinkDesktop');
-    const prereqLinkMobile = document.getElementById('prereqLinkMobile');
+    updateUI() {
+        const authContainer = document.getElementById('authContainer');
+        const userInfo = document.getElementById('userInfo');
+        const detectionContainer = document.getElementById('detection-container');
+        const loginPrompt = document.getElementById('login-prompt');
 
-    if (this.isAuthenticated && this.currentUser) {
-        if (authContainer) authContainer.style.display = 'none';
-        if (userInfo) {
-            userInfo.style.display = 'block';
-            userInfo.innerHTML = `
-                <div class="user-info-content">
-                    <div class="user-avatar">${this.currentUser.firstName.charAt(0)}${this.currentUser.lastName.charAt(0)}</div>
-                    <div class="user-details">
-                        <div class="user-name">${this.currentUser.firstName} ${this.currentUser.lastName}</div>
-                        <div class="user-username">@${this.currentUser.username}</div>
-                        <div class="user-email">${this.currentUser.email}</div>
+        console.log('Updating UI, isAuthenticated:', this.isAuthenticated); // Debug log
+        if (this.isAuthenticated && this.currentUser) {
+            if (authContainer) authContainer.style.display = 'none';
+            if (userInfo) {
+                userInfo.style.display = 'flex';
+                userInfo.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-gray-300 w-8 h-8 flex items-center justify-center rounded-full">${this.currentUser.firstName.charAt(0)}${this.currentUser.lastName.charAt(0)}</span>
+                        <span class="text-sm font-medium">Welcome, ${this.currentUser.username}</span>
                     </div>
-                    <button id="logoutBtn" class="logout-btn">Logout</button>
-                </div>`;
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) logoutBtn.addEventListener('click', (e) => this.handleLogout(e));
+                    <button id="logoutBtn" class="ml-2 text-sm text-academic-blue hover:underline">Logout</button>
+                `;
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) logoutBtn.addEventListener('click', (e) => this.handleLogout(e));
+            }
+            if (detectionContainer) detectionContainer.style.display = 'block';
+            if (loginPrompt) loginPrompt.style.display = 'none';
+        } else {
+            if (authContainer) authContainer.style.display = 'flex';
+            if (userInfo) userInfo.style.display = 'none';
+            if (detectionContainer) detectionContainer.style.display = 'none';
+            if (loginPrompt) loginPrompt.style.display = 'block';
         }
-
-        // Show prerequisite detector links
-        if (prereqLinkDesktop) prereqLinkDesktop.classList.remove('hidden');
-        if (prereqLinkMobile) prereqLinkMobile.classList.remove('hidden');
-
-    } else {
-        if (authContainer) authContainer.style.display = 'block';
-        if (userInfo) userInfo.style.display = 'none';
-
-        // Hide prerequisite detector links
-        if (prereqLinkDesktop) prereqLinkDesktop.classList.add('hidden');
-        if (prereqLinkMobile) prereqLinkMobile.classList.add('hidden');
     }
- }
-
 
     // Show login modal
     showLoginModal() {
@@ -266,7 +267,7 @@ class AuthManager {
 
     // Close all modals
     closeModals() {
-        const modals = document.querySelectorAll('.auth-modal');
+        const modals = document.querySelectorAll('.modal');
         modals.forEach(modal => {
             if (modal) modal.style.display = 'none';
         });

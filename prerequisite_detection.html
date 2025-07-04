@@ -1,236 +1,387 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EduVLM-Bench Prerequisite Detection</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background-color: #f9f9f9;
-    }
-    h2 {
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-    }
-    textarea {
-      width: 100%;
-      max-width: 700px;
-      padding: 10px;
-      margin-bottom: 15px;
-      font-size: 1rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: #2563eb;
-      color: white;
-      font-size: 1rem;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    pre {
-      background-color: #fff;
-      padding: 10px;
-      border: 1px solid #ccc;
-      white-space: pre-wrap;
-    }
-    .output-section {
-      margin-top: 20px;
-    }
-    .loader {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #2563eb;
-      border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
-      margin-right: 8px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduVLM-Bench - Prerequisite Detection Pipeline</title>
+    <meta name="description" content="Step-by-step demo of the prerequisite detection pipeline using EduVLM-Bench to identify missing concepts for math word problems with Gemini 1.5 Flash.">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="bg-white font-inter antialiased">
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-xl font-semibold text-academic-blue">
+                        EduVLM-Bench
+                    </a>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="nav-link">Research</a>
+                    <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+                    <a href="annotator.html" class="nav-link">Annotator</a>
+                </div>
+                
+                <!-- Desktop Download Button & Auth -->
+                <div class="hidden md:flex items-center space-x-3">
+                    <button onclick="downloadPaper()" class="bg-accent-amber text-white hover:bg-yellow-500 transition-colors font-medium px-4 py-2 rounded-md flex items-center text-sm">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Download
+                    </button>
+                    <!-- Authentication Section -->
+                    <div id="authContainer" class="auth-container flex space-x-2">
+                        <button id="showLoginBtn" class="auth-btn login-btn bg-academic-blue text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Login</button>
+                        <button id="showRegisterBtn" class="auth-btn register-btn bg-white text-academic-blue border border-academic-blue hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors">Sign Up</button>
+                    </div>
+                    
+                    <!-- User Info Section (hidden by default) -->
+                    <div id="userInfo" class="user-info" style="display: none;">
+                        <!-- User info will be populated by JavaScript -->
+                    </div>
+                </div>
 
-  <h2>EduVLM-Bench Prerequisite Detection</h2>
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-slate-grey hover:text-academic-blue focus:outline-none">
+                        <svg id="mobile-menu-icon" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Navigation Menu -->
+            <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200 py-4">
+                <div class="space-y-3">
+                    <a href="index.html" class="block nav-link-mobile">Research</a>
+                    <a href="leaderboard.html" class="block nav-link-mobile">Leaderboard</a>
+                    <a href="annotator.html" class="block nav-link-mobile">Annotator</a>
+                    <!-- Mobile Auth Buttons -->
+                    <button id="mobileLoginBtn" onclick="document.getElementById('loginModal').style.display='flex'" class="block w-full bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
+                        Login
+                    </button>
+                    <button id="mobileRegisterBtn" onclick="document.getElementById('registerModal').style.display='flex'" class="block w-full border border-academic-blue text-academic-blue hover:bg-gray-50 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
+                        Sign Up
+                    </button>
+                    <button onclick="downloadPaper()" class="w-full bg-accent-amber text-white hover:bg-yellow-500 transition-colors font-medium px-4 py-2 rounded-md flex items-center justify-center text-sm mt-4">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Download Paper
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-  <div id="detectionUI" style="display: none;">
-    <label for="question">Question:</label><br />
-    <textarea id="question" rows="3" placeholder="Enter the question here"></textarea><br />
+    <!-- Main Pipeline Section -->
+    <section class="py-16 bg-light-grey">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold font-crimson mb-6 text-center text-academic-blue">
+                Prerequisite Detection Pipeline Demo
+            </h2>
 
-    <label for="correct">Correct Answer:</label><br />
-    <textarea id="correct" rows="3" placeholder="Enter the correct answer here"></textarea><br />
+            <!-- Pipeline Overview -->
+            <div class="bg-white shadow-sm rounded-lg p-6 mb-8">
+                <h3 class="text-xl font-semibold text-dark-slate mb-2">How This Pipeline Works</h3>
+                <p class="text-sm text-slate-grey leading-relaxed">
+                    This demo showcases the EduVLM-Bench pipeline for detecting essential prerequisites in math word problems. The process involves three steps: loading or entering a question, providing answers for refinement, and analyzing prerequisites using an AI model. We use the <strong>Gemini 1.5 Flash</strong> model, a lightweight and fast variant of Google's generative AI, to process questions from the GSM8K dataset or user-provided inputs. This model, configured with the `gemini-1.5-flash` architecture, identifies required mathematical concepts in the correct learning order, prioritizing the most critical missing prerequisite based on correct and wrong answers. The pipeline leverages the open-source GSM8K dataset and provides transparent API responses, making it suitable for educational research and model evaluation.
+                </p>
+            </div>
 
-    <label for="wrong">Wrong Answer:</label><br />
-    <textarea id="wrong" rows="3" placeholder="Enter the wrong answer here"></textarea><br />
+            <!-- Pipeline Steps -->
+            <div class="bg-white shadow-sm rounded-lg p-8 space-y-8">
+                <!-- Step 1: Load or Enter Question -->
+                <div class="border-l-4 border-academic-blue pl-4">
+                    <h3 class="text-xl font-semibold text-dark-slate mb-2">Step 1: Load or Enter a Question</h3>
+                    <p class="text-sm text-slate-grey mb-4">Choose to load a random math word problem from the GSM8K dataset or enter your own question below.</p>
+                    <div class="mb-4">
+                        <label class="inline-flex items-center space-x-2">
+                            <input type="radio" name="questionSource" value="random" id="randomQuestion" checked class="form-radio text-academic-blue">
+                            <span class="text-sm text-gray-700">Load Random Question from GSM8K</span>
+                        </label>
+                        <label class="inline-flex items-center space-x-2 ml-6">
+                            <input type="radio" name="questionSource" value="manual" id="manualQuestion" class="form-radio text-academic-blue">
+                            <span class="text-sm text-gray-700">Enter Your Own Question</span>
+                        </label>
+                    </div>
+                    <button id="loadRandomBtn" class="bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-6 py-3 rounded-md flex items-center justify-center mb-4"
+                            title="Loads a random question from the GSM8K dataset">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004 9m0 10v-5h-.582m15.356 2A8.001 8.001 0 0120 15"/>
+                        </svg>
+                        Load Random Question
+                    </button>
+                    <div class="mt-4">
+                        <label for="questionInput" class="block text-sm font-medium text-gray-700">Question</label>
+                        <textarea id="questionInput" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" rows="4" placeholder="Question will load here or enter your own" autocomplete="off"></textarea>
+                    </div>
+                    <p id="questionDisplay" class="mt-2 text-sm text-slate-grey italic">No question loaded or entered yet.</p>
+                </div>
 
-    <button onclick="fetchPrerequisites()">Run Detection</button>
+                <!-- Step 2: Input Answers -->
+                <div class="border-l-4 border-academic-blue pl-4">
+                    <h3 class="text-xl font-semibold text-dark-slate mb-2">Step 2: Input Answers</h3>
+                    <p class="text-sm text-slate-grey mb-4">Enter the correct and a typical wrong answer to help refine the prerequisite analysis. Leave blank if unsure.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="correctAnswerInput" class="block text-sm font-medium text-gray-700">Correct Answer</label>
+                            <input type="text" id="correctAnswerInput" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="e.g., 42" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="wrongAnswerInput" class="block text-sm font-medium text-gray-700">Wrong Answer</label>
+                            <input type="text" id="wrongAnswerInput" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="e.g., 20" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
 
-    <div class="output-section">
-      <h3>All Prerequisites:</h3>
-      <pre id="allPrereq">--</pre>
+                <!-- Step 3: Analyze Prerequisites -->
+                <div class="border-l-4 border-academic-blue pl-4">
+                    <h3 class="text-xl font-semibold text-dark-slate mb-2">Step 3: Analyze Prerequisites</h3>
+                    <p class="text-sm text-slate-grey mb-4">Click the button below to analyze the question and detect essential prerequisites using Gemini 1.5 Flash.</p>
+                    <button id="detectBtn" class="bg-green-500 text-white hover:bg-green-600 transition-colors font-medium px-6 py-3 rounded-md flex items-center justify-center mb-4"
+                            title="Analyzes the question and answers to detect prerequisites">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        Analyze Prerequisites
+                    </button>
+                    <div class="mt-4">
+                        <h4 class="text-lg font-semibold text-dark-slate">Detected Prerequisites</h4>
+                        <div id="prerequisitesDisplay" class="text-sm text-slate-grey p-2 bg-gray-50 rounded-md mt-2">No prerequisites detected yet.</div>
+                    </div>
+                </div>
+            </div>
 
-      <h3>Missing Prerequisites:</h3>
-      <pre id="missingPrereq">--</pre>
+            <!-- Notification -->
+            <div id="notification" class="notification hidden mt-4 p-4 rounded-md"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- About Section -->
+                <div class="col-span-2">
+                    <h3 class="text-lg font-semibold mb-4 text-academic-blue">
+                        EduVLM-Bench
+                    </h3>
+                    <p class="text-sm leading-relaxed mb-4 text-slate-grey">
+                        A multimodal benchmark for evaluating educational concept understanding in Vision-Language Models. 
+                        Our framework focuses on identifying prerequisite concepts and bridging the gap between confusion and conceptual clarity.
+                    </p>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-sm font-semibold mb-4 text-dark-slate">
+                        Quick Links
+                    </h4>
+                    <ul class="space-y-3">
+                        <li>
+                            <a href="index.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                                Research Paper
+                            </a>
+                        </li>
+                        <li>
+                            <a href="leaderboard.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                                Model Leaderboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="annotator.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                                Annotator
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Authors -->
+                <div>
+                    <h4 class="text-sm font-semibold mb-4 text-dark-slate">
+                        Authors
+                    </h4>
+                    <ul class="space-y-2">
+                        <li class="text-sm text-slate-grey">Arka Mukerjee</li>
+                        <li class="text-sm text-slate-grey">Sriram P</li>
+                        <li class="text-sm text-slate-grey">Abhisekh Padhy</li>
+                        <li class="text-sm text-slate-grey">Nilam Bhojwani</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="border-t border-gray-300 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center">
+                <p class="text-sm text-slate-grey">
+                    © <span id="current-year"></span> EduVLM-Bench. All rights reserved. This demo uses Gemini 1.5 Flash for prerequisite detection.
+                </p>
+                <div class="flex space-x-6 mt-4 sm:mt-0">
+                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                        Privacy Policy
+                    </a>
+                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                        Terms of Use
+                    </a>
+                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
+                        Contact
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Citation Modal -->
+    <div id="citation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg max-w-2xl w-full mx-4 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-dark-slate">Citation</h3>
+                <button onclick="hideCitation()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-light-grey rounded-lg p-4 font-mono text-sm">
+                    <pre id="citation-text">@article{eduvlmbench2024,
+  title={EduVLM-Bench: A Multimodal Benchmark for Educational Concept Learning},
+  author={Mukerjee, Arka and P, Sriram and Padhy, Abhisekh and Bhojwani, Nilam},
+  year={2024},
+  journal={Educational AI Research}
+}</pre>
+                </div>
+                <button onclick="copyCitation()" class="bg-academic-blue text-white hover:bg-blue-700 transition-colors px-4 py-2 rounded-md flex items-center">
+                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    Copy Citation
+                </button>
+            </div>
+        </div>
     </div>
 
-    <div id="loading" style="display:none;">
-      <span class="loader"></span> Detecting prerequisites...
+    <!-- Login Modal -->
+    <div id="loginModal" class="auth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Login to EduVLM-Bench</h2>
+                <button class="close-modal text-2xl cursor-pointer" onclick="document.getElementById('loginModal').style.display='none'">×</button>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="loginEmail" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md" autocomplete="email">
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="loginPassword" name="password" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md" autocomplete="current-password">
+                </div>
+                <button type="submit" class="w-full bg-academic-blue text-white p-2 rounded-md hover:bg-blue-700">Login</button>
+                <p class="text-center text-sm">Don't have an account? <a href="#" id="switchToRegister" class="text-academic-blue hover:underline">Sign up</a></p>
+            </form>
+        </div>
     </div>
-  </div>
 
-  <div id="loginPrompt" style="display:none; text-align:center; margin-top: 20px;">
-    <p>
-      Please 
-      <button id="promptLoginBtn" style="color:blue; background:none; border:none; cursor:pointer;">Login</button> or
-      <button id="promptRegisterBtn" style="color:blue; background:none; border:none; cursor:pointer;">Register</button> to use prerequisite detection.
-    </p>
-  </div>
-
-  <!-- Login Modal -->
-  <div id="loginModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center;">
-    <div style="background:#fff; padding:20px; border-radius:10px; width:300px;">
-      <h3>Login</h3>
-      <form id="loginForm">
-        <input type="email" id="loginUsername" placeholder="Email" required><br><br>
-        <input type="password" id="loginPassword" placeholder="Password" required><br><br>
-        <button type="submit">Login</button>
-      </form>
-      <button onclick="document.getElementById('loginModal').style.display='none'">Cancel</button>
+    <!-- Register Modal -->
+    <div id="registerModal" class="auth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Sign Up for EduVLM-Bench</h2>
+                <button class="close-modal text-2xl cursor-pointer" onclick="document.getElementById('registerModal').style.display='none'">×</button>
+            </div>
+            <form id="registerForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" id="firstName" name="firstName" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md" autocomplete="given-name">
+                    </div>
+                    <div>
+                        <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md" autocomplete="family-name">
+                    </div>
+                </div>
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="username" name="username" required minlength="3" maxlength="20" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" autocomplete="username">
+                </div>
+                <div>
+                    <label for="registerEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="registerEmail" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md" autocomplete="email">
+                </div>
+                <div>
+                    <label for="registerPassword" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="registerPassword" name="password" required minlength="6" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" autocomplete="new-password">
+                </div>
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" autocomplete="new-password">
+                </div>
+                <button type="submit" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Register</button>
+                <p class="text-center text-sm">Already have an account? <a href="#" id="switchToLogin" class="text-academic-blue hover:underline">Login</a></p>
+            </form>
+        </div>
     </div>
-  </div>
 
-  <!-- Register Modal -->
-  <div id="registerModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center;">
-    <div style="background:#fff; padding:20px; border-radius:10px; width:300px;">
-      <h3>Register</h3>
-      <form id="registerForm">
-        <input type="text" id="registerUsername" placeholder="Username" required><br><br>
-        <input type="email" id="registerEmail" placeholder="Email" required><br><br>
-        <input type="text" id="registerFirstName" placeholder="First Name" required><br><br>
-        <input type="text" id="registerLastName" placeholder="Last Name" required><br><br>
-        <input type="password" id="registerPassword" placeholder="Password" required><br><br>
-        <button type="submit">Register</button>
-      </form>
-      <button onclick="document.getElementById('registerModal').style.display='none'">Cancel</button>
-    </div>
-  </div>
+    <script src="script.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        // Update current year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
 
-  <script>
-    async function fetchPrerequisites() {
-      const question = document.getElementById("question").value.trim();
-      const correct = document.getElementById("correct").value.trim();
-      const wrong = document.getElementById("wrong").value.trim();
-
-      if (!question || !correct || !wrong) {
-        alert("Please fill in all fields.");
-        return;
-      }
-
-      document.getElementById("loading").style.display = "block";
-
-      try {
-        const response = await fetch("https://eduvlm-prereq-backen.onrender.com/detect-prereqs", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            question,
-            correct_answer: correct,
-            wrong_answer: wrong
-          })
-        });
-
-        const result = await response.json();
-        document.getElementById("allPrereq").innerText = result.all_prerequisites || "No data";
-        document.getElementById("missingPrereq").innerText = result.missing_prerequisites || "No data";
-      } catch (err) {
-        alert("Failed to fetch prerequisites.");
-      } finally {
-        document.getElementById("loading").style.display = "none";
-      }
-    }
-
-    async function checkLoginStatus() {
-      try {
-        const res = await fetch("http://localhost:3000/api/user", {
-          credentials: "include"
-        });
-        const data = await res.json();
-
-        if (res.ok && data?.user) {
-          document.getElementById("detectionUI").style.display = "block";
-          document.getElementById("loginPrompt").style.display = "none";
-        } else {
-          document.getElementById("detectionUI").style.display = "none";
-          document.getElementById("loginPrompt").style.display = "block";
+        // Download paper function
+        function downloadPaper() {
+            alert('PDF download functionality would be implemented here.');
         }
-      } catch (err) {
-        document.getElementById("detectionUI").style.display = "none";
-        document.getElementById("loginPrompt").style.display = "block";
-      }
-    }
 
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("loginUsername").value;
-      const password = document.getElementById("loginPassword").value;
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('mobile-menu-icon');
+            if (mobileMenu && icon) {
+                if (mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.remove('hidden');
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
+                } else {
+                    mobileMenu.classList.add('hidden');
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+                }
+            }
+        }
 
-      const res = await fetch("http://localhost:3000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password })
-      });
+        // Citation Modal Functions
+        function showCitation() {
+            document.getElementById('citation-modal').classList.remove('hidden');
+        }
 
-      if (res.ok) {
-        alert("Login successful!");
-        document.getElementById("loginModal").style.display = "none";
-        checkLoginStatus();
-      } else {
-        alert("Login failed");
-      }
-    });
+        function hideCitation() {
+            document.getElementById('citation-modal').classList.add('hidden');
+        }
 
-    document.getElementById("registerForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = document.getElementById("registerUsername").value;
-      const email = document.getElementById("registerEmail").value;
-      const firstName = document.getElementById("registerFirstName").value;
-      const lastName = document.getElementById("registerLastName").value;
-      const password = document.getElementById("registerPassword").value;
-
-      const res = await fetch("http://localhost:3000/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ username, email, password, firstName, lastName })
-      });
-
-      if (res.ok) {
-        alert("Registration successful!");
-        document.getElementById("registerModal").style.display = "none";
-        checkLoginStatus();
-      } else {
-        const result = await res.json();
-        alert("Registration failed: " + (result.error || "Unknown error"));
-      }
-    });
-
-    document.getElementById('promptLoginBtn').onclick = () => {
-      document.getElementById('loginModal').style.display = 'flex';
-    };
-    document.getElementById('promptRegisterBtn').onclick = () => {
-      document.getElementById('registerModal').style.display = 'flex';
-    };
-
-    window.onload = checkLoginStatus;
-  </script>
+        function copyCitation() {
+            const citationText = document.getElementById('citation-text').textContent;
+            navigator.clipboard.writeText(citationText).then(() => {
+                alert('Citation copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy citation:', err);
+                alert('Failed to copy citation.');
+            });
+        }
+    </script>
 </body>
 </html>
