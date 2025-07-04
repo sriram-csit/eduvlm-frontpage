@@ -10,16 +10,16 @@ fetch(spreadsheetURL)
     const rows = json.table.rows;
 
     leaderboardData = rows.map((row, index) => {
+      const cells = row.c || [];
       return {
         id: index + 1,
         rank: index + 1,
-        modelName: row.c[0]?.v || 'N/A',
-        company: row.c[1]?.v || '-',  // Use column 2 for company
-        size: row.c[2]?.v || '-',
-        prerequisiteAccuracy: parseFloat((row.c[3]?.v || 0).toFixed(2)), // Detection Accuracy
-        conceptRecall: 0,
-        learningPathQuality: 0,
-        overallScore: parseFloat((row.c[3]?.v || 0).toFixed(2)) // Same as Detection Accuracy
+        modelName: cells[0]?.v || 'N/A',
+        size: cells[1]?.v || '-',
+        modelType: cells[2]?.v || '-',
+        detectionAccuracy: parseFloat((cells[3]?.v || 0).toFixed(2)),
+        notes: cells[4]?.v || '-',
+        overallScore: parseFloat((cells[3]?.v || 0).toFixed(2))
       };
     });
 
@@ -114,7 +114,7 @@ function fallbackCopyTextToClipboard(text) {
 
 function filterData(data) {
   return data.filter(entry => {
-    const matchesType = currentFilters.modelType === 'all' || entry.modelName.toLowerCase().includes(currentFilters.modelType.toLowerCase());
+    const matchesType = currentFilters.modelType === 'all' || entry.modelType.toLowerCase() === currentFilters.modelType.toLowerCase();
     const matchesSize = currentFilters.size === 'all' || entry.size === currentFilters.size;
     return matchesType && matchesSize;
   });
@@ -155,9 +155,9 @@ function getRankBadgeClass(rank) {
 }
 
 function getScoreClass(score, isOverall = false) {
-  if (isOverall && score >= 75) return 'score-overall-excellent';
-  if (score >= 80) return 'score-excellent';
-  if (score >= 70) return 'score-good';
+  if (isOverall && score >= 35) return 'score-overall-excellent';
+  if (score >= 30) return 'score-excellent';
+  if (score >= 20) return 'score-good';
   return 'score-average';
 }
 
@@ -172,6 +172,7 @@ function updateSortIcons() {
     activeIcon.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
   }
 }
+
 function renderLeaderboard() {
   const filtered = filterData(leaderboardData);
   const sorted = sortData(filtered, currentSort.column, currentSort.direction);
@@ -184,10 +185,11 @@ function renderLeaderboard() {
       row.className = 'hover:bg-gray-50 transition-colors';
       row.innerHTML = `
         <td><span class="${getRankBadgeClass(entry.rank)}">${entry.rank}</span></td>
-        <td><div>${entry.modelName}</div><div>${entry.company}</div></td>
+        <td>${entry.modelName}</td>
         <td>${entry.size}</td>
-        <td><span class="${getScoreClass(entry.prerequisiteAccuracy)}">${entry.prerequisiteAccuracy}%</span></td>
-
+        <td>${entry.modelType}</td>
+        <td><span class="${getScoreClass(entry.detectionAccuracy)}">${entry.detectionAccuracy}%</span></td>
+        <td>${entry.notes}</td>
       `;
       tbody.appendChild(row);
     });
@@ -201,18 +203,24 @@ function renderLeaderboard() {
       card.className = 'mobile-card';
       card.innerHTML = `
         <div class="mobile-card-header">
-          <div><span class="${getRankBadgeClass(entry.rank)}">${entry.rank}</span><div>${entry.modelName}</div><div>${entry.company} • ${entry.size}</div></div>
-          <div><div class="${getScoreClass(entry.overallScore, true)}">${entry.overallScore}%</div><div>Overall</div></div>
+          <div>
+            <span class="${getRankBadgeClass(entry.rank)}">${entry.rank}</span>
+            <div>${entry.modelName}</div>
+            <div>${entry.modelType} • ${entry.size}</div>
+          </div>
+          <div>
+            <div class="${getScoreClass(entry.detectionAccuracy, true)}">${entry.detectionAccuracy}%</div>
+            <div>Accuracy</div>
+          </div>
         </div>
         <div class="mobile-card-metrics">
-          <div><div>Prerequisite Accuracy</div><div class="${getScoreClass(entry.prerequisiteAccuracy)}">${entry.prerequisiteAccuracy}%</div></div>
-          <div><div>Concept Recall</div><div class="${getScoreClass(entry.conceptRecall)}">${entry.conceptRecall}%</div></div>
-          <div><div>Learning Path Quality</div><div class="${getScoreClass(entry.learningPathQuality)}">${entry.learningPathQuality}%</div></div>
+          <div><div>Notes</div><div>${entry.notes}</div></div>
         </div>
       `;
       mobileContainer.appendChild(card);
     });
   }
+
   updateSortIcons();
 }
 

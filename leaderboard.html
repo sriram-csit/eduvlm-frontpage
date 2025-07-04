@@ -163,13 +163,20 @@
                                         Model<span id="modelName-sort" class="sort-icon">↕</span>
                                     </th>
                                     <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('size')">
-                                        Type <span id="size-sort" class="sort-icon">↕</span>
+                                        Size <span id="size-sort" class="sort-icon">↕</span>
                                     </th>
-                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('prerequisiteAccuracy')">
-                                        <span class="hidden lg:inline">Detection Accuracy(pass@1)</span>
-                                        <span class="lg:hidden">Det Accuracy</span>
-                                        <span id="prerequisiteAccuracy-sort" class="sort-icon">↕</span>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelType')">
+                                        Model Type <span id="modelType-sort" class="sort-icon">↕</span>
                                     </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('detectionAccuracy')">
+                                        <span class="hidden lg:inline">Detection Accuracy (pass@1)</span>
+                                        <span class="lg:hidden">Accuracy</span>
+                                        <span id="detectionAccuracy-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider">
+                                        Notes
+                                    </th>
+
                                     <!-- <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('conceptRecall')">
                                         <span class="hidden lg:inline">Concept Recall</span>
                                         <span class="lg:hidden">Concept</span>
