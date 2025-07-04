@@ -12,20 +12,6 @@ fetch(spreadsheetURL)
     const json = JSON.parse(rep.substring(47).slice(0, -2));
     const rows = json.table.rows;
 
-    // leaderboardData = rows.map((row, index) => {
-    //   return {
-    //     id: index + 1,
-    //     rank: index + 1,
-    //     modelName: row.c[0]?.v || 'N/A',
-    //     company: row.c[1]?.v || '-',
-    //     size: row.c[2]?.v || '-',
-    //     prerequisiteAccuracy: parseFloat((row.c[3]?.v || 0).toFixed(2)),
-    //     conceptRecall: 0,
-    //     learningPathQuality: 0,
-    //     overallScore: parseFloat((row.c[3]?.v || 0).toFixed(2))
-    //   };
-    // });
-
     leaderboardData = rows.map((row, index) => {
   return {
     id: index + 1,
