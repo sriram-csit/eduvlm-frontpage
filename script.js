@@ -12,19 +12,33 @@ fetch(spreadsheetURL)
     const json = JSON.parse(rep.substring(47).slice(0, -2));
     const rows = json.table.rows;
 
+    // leaderboardData = rows.map((row, index) => {
+    //   return {
+    //     id: index + 1,
+    //     rank: index + 1,
+    //     modelName: row.c[0]?.v || 'N/A',
+    //     company: row.c[1]?.v || '-',
+    //     size: row.c[2]?.v || '-',
+    //     prerequisiteAccuracy: parseFloat((row.c[3]?.v || 0).toFixed(2)),
+    //     conceptRecall: 0,
+    //     learningPathQuality: 0,
+    //     overallScore: parseFloat((row.c[3]?.v || 0).toFixed(2))
+    //   };
+    // });
+
     leaderboardData = rows.map((row, index) => {
-      return {
-        id: index + 1,
-        rank: index + 1,
-        modelName: row.c[0]?.v || 'N/A',
-        company: row.c[1]?.v || '-',
-        size: row.c[2]?.v || '-',
-        prerequisiteAccuracy: parseFloat((row.c[3]?.v || 0).toFixed(2)),
-        conceptRecall: 0,
-        learningPathQuality: 0,
-        overallScore: parseFloat((row.c[3]?.v || 0).toFixed(2))
-      };
-    });
+  return {
+    id: index + 1,
+    rank: index + 1,
+    modelName: row.c[0]?.v || 'N/A',
+    modelSize: row.c[1]?.v || '-',
+    modelType: row.c[2]?.v || '-',
+    detectionAccuracy: parseFloat((row.c[3]?.v || 0).toFixed(2)),
+    notes: row.c[4]?.v || '-',
+    overallScore: parseFloat((row.c[3]?.v || 0).toFixed(2)) // Use detection accuracy as score
+  };
+});
+
 
     // Sort by overallScore descending
     leaderboardData.sort((a, b) => b.overallScore - a.overallScore);
@@ -416,11 +430,14 @@ function renderLeaderboard() {
       const row = document.createElement('tr');
       row.className = 'hover:bg-gray-50 transition-colors';
       row.innerHTML = `
-        <td><span class="${getRankBadgeClass(entry.rank)}">${entry.rank}</span></td>
-        <td><div>${entry.modelName}</div><div>${entry.company}</div></td>
-        <td>${entry.size}</td>
-        <td><span class="${getScoreClass(entry.prerequisiteAccuracy)}">${entry.prerequisiteAccuracy}%</span></td>
-      `;
+  <td><span class="${getRankBadgeClass(entry.rank)}">${entry.rank}</span></td>
+  <td>${entry.modelName}</td>
+  <td>${entry.modelSize}</td>
+  <td>${entry.modelType}</td>
+  <td><span class="${getScoreClass(entry.detectionAccuracy)}">${entry.detectionAccuracy}%</span></td>
+  <td>${entry.notes}</td>
+`;
+
       tbody.appendChild(row);
     });
   }
@@ -433,15 +450,22 @@ function renderLeaderboard() {
       card.className = 'mobile-card';
       card.innerHTML = `
         <div class="mobile-card-header">
-          <div><span class="${getRankBadgeClass(entry.rank)}">${entry.rank}</span><div>${entry.modelName}</div><div>${entry.company} • ${entry.size}</div></div>
-          <div><div class="${getScoreClass(entry.overallScore, true)}">${entry.overallScore}%</div><div>Overall</div></div>
+          <div>
+            <span class="${getRankBadgeClass(entry.rank)}">${entry.rank}</span>
+            <div><strong>${entry.modelName}</strong></div>
+            <div>${entry.modelSize} • ${entry.modelType}</div>
+          </div>
+          <div>
+            <div class="${getScoreClass(entry.detectionAccuracy, true)}">${entry.detectionAccuracy}%</div>
+            <div>Accuracy</div>
+          </div>
         </div>
         <div class="mobile-card-metrics">
-          <div><div>Prerequisite Accuracy</div><div class="${getScoreClass(entry.prerequisiteAccuracy)}">${entry.prerequisiteAccuracy}%</div></div>
-          <div><div>Concept Recall</div><div class="${getScoreClass(entry.conceptRecall)}">${entry.conceptRecall}%</div></div>
-          <div><div>Learning Path Quality</div><div class="${getScoreClass(entry.learningPathQuality)}">${entry.learningPathQuality}%</div></div>
+          <div><div>Notes</div><div>${entry.notes}</div></div>
         </div>
       `;
+
+
       mobileContainer.appendChild(card);
     });
   }

@@ -122,9 +122,9 @@
                     <div class="flex flex-col sm:flex-row gap-4">
                         <select id="model-filter" class="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm flex-1 sm:flex-none">
                             <option value="all">All Model Types</option>
-                            <option value="GPT">GPT Models</option>
-                            <option value="Flan">Flan Models</option>
-                            <option value="Gemini">Gemini Models</option>
+                            <option value="LLM">LLM</option>
+                            <option value="VLM">VLM</option>
+                            <option value="VLM">Human</option>
                         </select>
                         
                         <select id="size-filter" class="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm flex-1 sm:flex-none">
@@ -156,36 +156,28 @@
                         <table class="w-full">
                             <thead class="bg-light-grey">
                                 <tr>
-                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('rank')">
-                                        Rank <span id="rank-sort" class="sort-icon">↕</span>
-                                    </th>
-                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelName')">
-                                        Model<span id="modelName-sort" class="sort-icon">↕</span>
-                                    </th>
-                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('size')">
-                                        Type <span id="size-sort" class="sort-icon">↕</span>
-                                    </th>
-                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('prerequisiteAccuracy')">
-                                        <span class="hidden lg:inline">Detection Accuracy(pass@1)</span>
-                                        <span class="lg:hidden">Det Accuracy</span>
-                                        <span id="prerequisiteAccuracy-sort" class="sort-icon">↕</span>
-                                    </th>
-                                    <!-- <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('conceptRecall')">
-                                        <span class="hidden lg:inline">Concept Recall</span>
-                                        <span class="lg:hidden">Concept</span>
-                                        <span id="conceptRecall-sort" class="sort-icon">↕</span>
-                                    </th>
-                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('learningPathQuality')">
-                                        <span class="hidden lg:inline">Learning Path Quality</span>
-                                        <span class="lg:hidden">Learning</span>
-                                        <span id="learningPathQuality-sort" class="sort-icon">↕</span>
-                                    </th>
-                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('overallScore')">
-                                        <span class="hidden lg:inline">Overall Score</span>
-                                        <span class="lg:hidden">Overall</span>
-                                        <span id="overallScore-sort" class="sort-icon">↕</span>
-                                    </th> -->
-                                </tr>
+  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('rank')">
+    Rank <span id="rank-sort" class="sort-icon">↕</span>
+  </th>
+  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelName')">
+    Model Name <span id="modelName-sort" class="sort-icon">↕</span>
+  </th>
+  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelSize')">
+    Model Size <span id="modelSize-sort" class="sort-icon">↕</span>
+  </th>
+  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelType')">
+    Model Type <span id="modelType-sort" class="sort-icon">↕</span>
+  </th>
+  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('detectionAccuracy')">
+    <span class="hidden lg:inline">Detection Accuracy (pass@1)</span>
+    <span class="lg:hidden">Accuracy</span>
+    <span id="detectionAccuracy-sort" class="sort-icon">↕</span>
+  </th>
+  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('notes')">
+    Notes <span id="notes-sort" class="sort-icon">↕</span>
+  </th>
+</tr>
+
                             </thead>
                             <tbody id="leaderboard-body" class="bg-white divide-y divide-gray-200">
                                 <!-- Table rows will be populated by JavaScript -->
