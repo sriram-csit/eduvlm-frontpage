@@ -206,32 +206,45 @@ class AuthManager {
     }
 
     // Update UI based on authentication status
-    updateUI() {
-        const authContainer = document.getElementById('authContainer');
-        const userInfo = document.getElementById('userInfo');
-        
-        if (this.isAuthenticated && this.currentUser) {
-            if (authContainer) authContainer.style.display = 'none';
-            if (userInfo) {
-                userInfo.style.display = 'block';
-                userInfo.innerHTML = `
-                    <div class="user-info-content">
-                        <div class="user-avatar">${this.currentUser.firstName.charAt(0)}${this.currentUser.lastName.charAt(0)}</div>
-                        <div class="user-details">
-                            <div class="user-name">${this.currentUser.firstName} ${this.currentUser.lastName}</div>
-                            <div class="user-username">@${this.currentUser.username}</div>
-                            <div class="user-email">${this.currentUser.email}</div>
-                        </div>
-                        <button id="logoutBtn" class="logout-btn">Logout</button>
-                    </div>`;
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) logoutBtn.addEventListener('click', (e) => this.handleLogout(e));
-            }
-        } else {
-            if (authContainer) authContainer.style.display = 'block';
-            if (userInfo) userInfo.style.display = 'none';
+    updateUI() 
+    {
+    const authContainer = document.getElementById('authContainer');
+    const userInfo = document.getElementById('userInfo');
+    const prereqLinkDesktop = document.getElementById('prereqLinkDesktop');
+    const prereqLinkMobile = document.getElementById('prereqLinkMobile');
+
+    if (this.isAuthenticated && this.currentUser) {
+        if (authContainer) authContainer.style.display = 'none';
+        if (userInfo) {
+            userInfo.style.display = 'block';
+            userInfo.innerHTML = `
+                <div class="user-info-content">
+                    <div class="user-avatar">${this.currentUser.firstName.charAt(0)}${this.currentUser.lastName.charAt(0)}</div>
+                    <div class="user-details">
+                        <div class="user-name">${this.currentUser.firstName} ${this.currentUser.lastName}</div>
+                        <div class="user-username">@${this.currentUser.username}</div>
+                        <div class="user-email">${this.currentUser.email}</div>
+                    </div>
+                    <button id="logoutBtn" class="logout-btn">Logout</button>
+                </div>`;
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) logoutBtn.addEventListener('click', (e) => this.handleLogout(e));
         }
+
+        // Show prerequisite detector links
+        if (prereqLinkDesktop) prereqLinkDesktop.classList.remove('hidden');
+        if (prereqLinkMobile) prereqLinkMobile.classList.remove('hidden');
+
+    } else {
+        if (authContainer) authContainer.style.display = 'block';
+        if (userInfo) userInfo.style.display = 'none';
+
+        // Hide prerequisite detector links
+        if (prereqLinkDesktop) prereqLinkDesktop.classList.add('hidden');
+        if (prereqLinkMobile) prereqLinkMobile.classList.add('hidden');
     }
+ }
+
 
     // Show login modal
     showLoginModal() {

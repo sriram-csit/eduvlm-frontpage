@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/eduvlm-bench';
 // Kept the original Windows path with minimal adjustment for consistency
-const CSV_PATH = 'D:/eduvlm-app/gsm8k_wrong_answers_with_missing_prerequisites_enhanced (1).csv'.replace(/\\/g, '/');
+const CSV_PATH = 'C:/Users/LENOVO/OneDrive/Desktop/Gemini API/eduvlm-frontpage/gsm8k_wrong_answers_with_missing_prerequisites_enhanced (1).csv'.replace(/\\/g, '/');
 
 // Middleware
 app.use(cors({

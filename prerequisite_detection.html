@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduVLM-Bench Prerequisite Detection</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f9f9f9;
+    }
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+    textarea {
+      width: 100%;
+      max-width: 700px;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    pre {
+      background-color: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      white-space: pre-wrap;
+    }
+    .output-section {
+      margin-top: 20px;
+    }
+    @media (max-width: 768px) {
+      textarea {
+        font-size: 0.9rem;
+        padding: 8px;
+      }
+
+      button {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      body {
+        margin: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>EduVLM-Bench Prerequisite Detection</h2>
+
+  <div id="detectionUI" style="display: none;">
+   <label for="question">Question:</label><br />
+   <textarea id="question" rows="3" placeholder="Enter the question here"></textarea><br />
+
+   <label for="correct">Correct Answer:</label><br />
+   <textarea id="correct" rows="3" placeholder="Enter the correct answer here"></textarea><br />
+
+   <label for="wrong">Wrong Answer:</label><br />
+   <textarea id="wrong" rows="3" placeholder="Enter the wrong answer here"></textarea><br />
+
+   <button id="runBtn" onclick="fetchPrerequisites()">Run Detection</button>
+
+   <div class="output-section">
+     <h3>All Prerequisites:</h3>
+     <pre id="allPrereq">--</pre>
+
+     <h3>Missing Prerequisites:</h3>
+     <pre id="missingPrereq">--</pre>
+   </div>
+   <div id="loading" style="display:none;">Detecting prerequisites...</div>
+   </div>
+   <div id="loading" style="display:none;">
+   <span class="loader"></span> Detecting prerequisites...
+  </div>
+
+ <style>
+ .loader {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #2563eb;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+ }
+ @keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+ }
+ </style>
+
+  <script>
+    async function fetchPrerequisites() {
+     const question = document.getElementById("question").value.trim();
+     const correctAnswer = document.getElementById("correct").value.trim();
+     const wrongAnswer = document.getElementById("wrong").value.trim();
+
+     if (!question || !correctAnswer || !wrongAnswer) {
+     alert("Please fill in all fields.");
+     return;
+     }
+
+     document.getElementById("loading").style.display = "block";
+
+      try {
+       const response = await fetch("https://eduvlm-prereq-backen.onrender.com/detect-prereqs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: question,
+          correct_answer: correctAnswer,
+          wrong_answer: wrongAnswer
+        })
+     });
+
+        if (!response.ok) throw new Error("API Error");
+
+        const result = await response.json();
+        document.getElementById("allPrereq").innerText = result.all_prerequisites || "No data";
+        document.getElementById("missingPrereq").innerText = result.missing_prerequisites || "No data";
+
+        document.getElementById("allPrereq").scrollIntoView({ behavior: "smooth" });
+        document.getElementById("missingPrereq").scrollIntoView({ behavior: "smooth" });
+       }catch (err) {
+        console.error("Error:", err);
+        alert("Failed to fetch prerequisites. Please try again later.");
+       }finally {
+        document.getElementById("loading").style.display = "none";
+       }
+    }
+  </script>
+ <script>
+  async function checkLoginStatus() {
+    try {
+      const res = await fetch("http://localhost:3000/api/user", {
+        credentials: "include",
+        method: "GET"
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data?.user) {
+        document.getElementById("detectionUI").style.display = "block";
+      } else {
+        document.getElementById("detectionUI").style.display = "none";
+        alert("Please log in to use prerequisite detection.");
+      }
+    } catch (err) {
+      console.error("Login check failed:", err);
+      document.getElementById("detectionUI").style.display = "none";
+    }
+  }
+
+  window.onload = checkLoginStatus;
+ </script>
+
+</body>
+</html>
+<!-- This HTML file provides a simple interface for users to input a question, correct answer, and wrong answer. 
+     It then sends this data to a backend service to detect prerequisites using the Gemini model. 
+     The results are displayed in two sections: all prerequisites and missing prerequisites. -->
