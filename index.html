@@ -12,7 +12,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:wght@400;600;700&display=stylesheet">
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
@@ -33,6 +33,7 @@
                     <a href="index.html" class="nav-link active">Research</a>
                     <a href="leaderboard.html" class="nav-link">Leaderboard</a>
                     <a href="annotator.html" class="nav-link">Annotator</a>
+                    <a href="admin.html" id="admin-nav-link" class="nav-link hidden" data-admin-only>Admin</a>
                 </div>
                 
                 <!-- Desktop Download Button & Auth -->
@@ -45,12 +46,12 @@
                     </button>
                     <!-- Authentication Section -->
                     <div id="authContainer" class="auth-container flex space-x-2">
-                        <button id="showLoginBtn" class="auth-btn login-btn bg-academic-blue text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Login</button>
-                        <button id="showRegisterBtn" class="auth-btn register-btn bg-white text-academic-blue border border-academic-blue hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors">Sign Up</button>
+                        <button id="login-btn" class="auth-btn login-btn bg-academic-blue text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Login</button>
+                        <button id="signup-btn" class="auth-btn register-btn bg-white text-academic-blue border border-academic-blue hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors">Sign Up</button>
                     </div>
                     
                     <!-- User Info Section (hidden by default) -->
-                    <div id="userInfo" class="user-info" style="display: none;">
+                    <div id="user-info" class="user-info hidden">
                         <!-- User info will be populated by JavaScript -->
                     </div>
                 </div>
@@ -71,11 +72,12 @@
                     <a href="index.html" class="block nav-link-mobile active">Research</a>
                     <a href="leaderboard.html" class="block nav-link-mobile">Leaderboard</a>
                     <a href="annotator.html" class="block nav-link-mobile">Annotator</a>
+                    <a href="admin.html" id="mobile-admin-nav-link" class="block nav-link-mobile hidden" data-admin-only>Admin</a>
                     <!-- Mobile Auth Buttons -->
-                    <button id="mobileLoginBtn" onclick="document.getElementById('loginModal').style.display='flex'" class="block w-full bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
+                    <button id="mobile-login-btn" class="block w-full bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
                         Login
                     </button>
-                    <button id="mobileRegisterBtn" onclick="document.getElementById('registerModal').style.display='flex'" class="block w-full border border-academic-blue text-academic-blue hover:bg-gray-50 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
+                    <button id="mobile-signup-btn" class="block w-full border border-academic-blue text-academic-blue hover:bg-gray-50 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
                         Sign Up
                     </button>
                     <button onclick="downloadPaper()" class="w-full bg-accent-amber text-white hover:bg-yellow-500 transition-colors font-medium px-4 py-2 rounded-md flex items-center justify-center text-sm mt-4">
@@ -273,6 +275,11 @@
                                 Annotator
                             </a>
                         </li>
+                        <li>
+                            <a href="admin.html" id="footer-admin-link" class="text-sm text-slate-grey hover:text-academic-blue transition-colors hidden" data-admin-only>
+                                Admin
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -341,63 +348,65 @@
     </div>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="auth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="login-modal" class="auth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white p-6 rounded-lg shadow-lg w-96">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold">Login to EduVLM-Bench</h2>
-                <button class="close-modal text-2xl cursor-pointer" onclick="document.getElementById('loginModal').style.display='none'">×</button>
+                <button class="close-modal text-2xl cursor-pointer" onclick="document.getElementById('login-modal').classList.add('hidden')">×</button>
             </div>
-            <form id="loginForm" class="space-y-4">
+            <form id="login-form" class="space-y-4">
                 <div>
-                    <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="loginEmail" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    <label for="login-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="login-email" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
                 <div>
-                    <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="loginPassword" name="password" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="login-password" name="password" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <button type="submit" class="w-full bg-academic-blue text-white p-2 rounded-md hover:bg-blue-700">Login</button>
-                <p class="text-center text-sm">Don't have an account? <a href="#" id="switchToRegister" class="text-academic-blue hover:underline">Sign up</a></p>
+                <div id="login-error" class="text-red-500 text-sm hidden"></div>
+                <button type="submit" id="login-submit" class="w-full bg-academic-blue text-white p-2 rounded-md hover:bg-blue-700">Login</button>
+                <p class="text-center text-sm">Don't have an account? <a href="#" onclick="switchToSignup()" class="text-academic-blue hover:underline">Sign up</a></p>
             </form>
         </div>
     </div>
 
     <!-- Register Modal -->
-    <div id="registerModal" class="auth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="signup-modal" class="auth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white p-6 rounded-lg shadow-lg w-96">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold">Sign Up for EduVLM-Bench</h2>
-                <button class="close-modal text-2xl cursor-pointer" onclick="document.getElementById('registerModal').style.display='none'">×</button>
+                <button class="close-modal text-2xl cursor-pointer" onclick="document.getElementById('signup-modal').classList.add('hidden')">×</button>
             </div>
-            <form id="registerForm" class="space-y-4">
+            <form id="signup-form" class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
-                        <input type="text" id="firstName" name="firstName" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                        <label for="signup-firstName" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" id="signup-firstName" name="firstName" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                     </div>
                     <div>
-                        <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
-                        <input type="text" id="lastName" name="lastName" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                        <label for="signup-lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" id="signup-lastName" name="lastName" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                     </div>
                 </div>
                 <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-                    <input type="text" id="username" name="username" required minlength="3" maxlength="20" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    <label for="signup-username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="signup-username" name="username" required minlength="3" maxlength="20" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
                 <div>
-                    <label for="registerEmail" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="registerEmail" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    <label for="signup-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="signup-email" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
                 <div>
-                    <label for="registerPassword" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="registerPassword" name="password" required minlength="6" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    <label for="signup-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="signup-password" name="password" required minlength="6" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
                 <div>
-                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    <label for="signup-confirm-password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" name="confirmPassword" required minlength="6" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <button type="submit" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Register</button>
-                <p class="text-center text-sm">Already have an account? <a href="#" id="switchToLogin" class="text-academic-blue hover:underline">Login</a></p>
+                <div id="signup-error" class="text-red-500 text-sm hidden"></div>
+                <button type="submit" id="signup-submit" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Register</button>
+                <p class="text-center text-sm">Already have an account? <a href="#" onclick="switchToLogin()" class="text-academic-blue hover:underline">Login</a></p>
             </form>
         </div>
     </div>
@@ -408,44 +417,14 @@
         // Update current year
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
-        // Download paper function
-        function downloadPaper() {
-            alert('PDF download functionality would be implemented here.');
-        }
-
-        // Toggle mobile menu
-        function toggleMobileMenu() {
-            const mobileMenu = document.getElementById('mobile-menu');
-            const icon = document.getElementById('mobile-menu-icon');
-            if (mobileMenu && icon) {
-                if (mobileMenu.classList.contains('hidden')) {
-                    mobileMenu.classList.remove('hidden');
-                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
-                } else {
-                    mobileMenu.classList.add('hidden');
-                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
-                }
+        // Show admin link if user is admin
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.authManager && window.authManager.isAuthenticated && window.authManager.currentUser.isAdmin) {
+                document.getElementById('admin-nav-link').classList.remove('hidden');
+                document.getElementById('mobile-admin-nav-link').classList.remove('hidden');
+                document.getElementById('footer-admin-link').classList.remove('hidden');
             }
-        }
-
-        // Citation Modal Functions
-        function showCitation() {
-            document.getElementById('citation-modal').classList.remove('hidden');
-        }
-
-        function hideCitation() {
-            document.getElementById('citation-modal').classList.add('hidden');
-        }
-
-        function copyCitation() {
-            const citationText = document.getElementById('citation-text').textContent;
-            navigator.clipboard.writeText(citationText).then(() => {
-                alert('Citation copied to clipboard!');
-            }).catch(err => {
-                console.error('Failed to copy citation:', err);
-                alert('Failed to copy citation.');
-            });
-        }
+        });
     </script>
 </body>
 </html>

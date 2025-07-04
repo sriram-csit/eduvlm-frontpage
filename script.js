@@ -1,9 +1,11 @@
 
+// Main JavaScript for EduVLM-Bench frontend
 let leaderboardData = [];
 const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/1BiHQZ5-DpgB_RlrxC-w0q_zxD9Tj-YxYpG9vU01IPD8/gviz/tq?sheet=Sheet1';
 
-console.log('Loaded script.js version: 2025-07-04-v3'); // Debug to confirm script version
+console.log('Loaded script.js version: 2025-07-04-v5'); // Updated version for tracking
 
+// Fetch leaderboard data from Google Sheets
 fetch(spreadsheetURL)
   .then(res => res.text())
   .then(rep => {
@@ -33,22 +35,18 @@ fetch(spreadsheetURL)
 
 let currentSort = { column: 'rank', direction: 'asc' };
 let currentFilters = { modelType: 'all', size: 'all' };
-let currentUser = null;
 
+// Initialize page
 document.addEventListener('DOMContentLoaded', function() {
+  // Update current year
   const yearElements = document.querySelectorAll('#current-year');
   if (yearElements.length > 0) {
     yearElements.forEach(el => el.textContent = new Date().getFullYear());
   }
 
-  // Use authManager for authentication check
-  if (window.authManager) {
-    window.authManager.checkAuthStatus().then(() => {
-      if (window.authManager.isAuthenticated) {
-        currentUser = window.authManager.currentUser;
-        renderUserInfo();
-      }
-    });
+  // Load annotations if on admin panel
+  if (document.getElementById('admin-annotations')) {
+    loadAnnotations();
   }
 
   // Add click handler for prerequisite detection button
@@ -56,10 +54,11 @@ document.addEventListener('DOMContentLoaded', function() {
   if (prereqBtn) {
     prereqBtn.addEventListener('click', function(e) {
       console.log('Prerequisite detection button clicked, navigating to prerequisite_detection.html');
-      window.location.href = 'prerequisite_detection.html'; // Force navigation
+      window.location.href = 'prerequisite_detection.html';
     });
   }
 
+  // Leaderboard filters
   if (document.getElementById('leaderboard-body') || document.getElementById('mobile-leaderboard')) {
     renderLeaderboard();
 
@@ -81,36 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  const loginBtn = document.getElementById('login-btn');
-  if (loginBtn) loginBtn.addEventListener('click', () => {
-    const loginModal = document.getElementById('login-modal');
-    if (loginModal) loginModal.classList.remove('hidden');
-  });
-
-  const signupBtn = document.getElementById('signup-btn');
-  if (signupBtn) signupBtn.addEventListener('click', () => {
-    const signupModal = document.getElementById('signup-modal');
-    if (signupModal) signupModal.classList.remove('hidden');
-  });
-
-  const mobileLoginBtn = document.getElementById('mobile-login-btn');
-  if (mobileLoginBtn) mobileLoginBtn.addEventListener('click', () => {
-    const loginModal = document.getElementById('login-modal');
-    if (loginModal) loginModal.classList.remove('hidden');
-  });
-
-  const mobileSignupBtn = document.getElementById('mobile-signup-btn');
-  if (mobileSignupBtn) mobileSignupBtn.addEventListener('click', () => {
-    const signupModal = document.getElementById('signup-modal');
-    if (signupModal) signupModal.classList.remove('hidden');
-  });
-
-  const loginSubmit = document.getElementById('login-submit');
-  if (loginSubmit) loginSubmit.addEventListener('click', login);
-
-  const signupSubmit = document.getElementById('signup-submit');
-  if (signupSubmit) signupSubmit.addEventListener('click', signup);
-
   // Add random question loader
   const loadRandomBtn = document.getElementById('loadRandomBtn');
   if (loadRandomBtn) {
@@ -119,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const response = await fetch(`/api/questions?random=1&t=${new Date().getTime()}`, {
           credentials: 'include'
         });
+        console.log('Random question fetch response:', response.status); // Debug log
         if (response.ok) {
           const data = await response.json();
           const questionInput = document.getElementById('questionInput');
@@ -132,9 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
             correctAnswerInput.value = data[0].correct_answer || '';
             wrongAnswerInput.value = data[0].wrong_answer || '';
             questionDisplay.textContent = data[0].question || 'No question loaded';
-            notification.textContent = 'Example question loaded successfully!';
-            notification.className = 'notification success show';
-            setTimeout(() => notification.className = 'notification success', 3000);
+            showNotification('Example question loaded successfully!', 'success');
           } else {
             throw new Error('Invalid data format or missing elements');
           }
@@ -165,54 +133,152 @@ document.addEventListener('DOMContentLoaded', function() {
       await detectPrerequisites(question, correctAnswer, wrongAnswer);
     });
   }
+
+  // Add event listener for report generation button
+  const generateReportBtn = document.getElementById('generate-report-btn');
+  if (generateReportBtn) {
+    generateReportBtn.addEventListener('click', generateReport);
+  }
 });
 
-function toggleMobileMenu() {
-  const mobileMenu = document.getElementById('mobile-menu');
-  const icon = document.getElementById('mobile-menu-icon');
+// Function to load annotations for admin panel
+async function loadAnnotations() {
+  const tableBody = document.getElementById('admin-annotations-body');
+  if (!tableBody) {
+    console.log('Table body not found. Not on admin page.');
+    return;
+  }
 
-  if (mobileMenu && icon) {
-    if (mobileMenu.classList.contains('hidden')) {
-      mobileMenu.classList.remove('hidden');
-      icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
-    } else {
-      mobileMenu.classList.add('hidden');
-      icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+  try {
+    const response = await fetch('/api/admin/annotations', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    console.log('Annotations fetch response:', response.status, new Date().toISOString()); // Debug log
+    if (!response.ok) {
+      throw new Error(`Failed to fetch annotations: ${response.status}`);
     }
+    const annotations = await response.json();
+    console.log('Annotations data:', annotations); // Debug log
+
+    if (!Array.isArray(annotations) || annotations.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="5" class="py-3 px-4 text-center text-slate-grey">No annotations found.</td></tr>';
+      showNotification('No annotations available.', 'info');
+      return;
+    }
+
+    renderAnnotations(annotations);
+  } catch (error) {
+    console.error('Error loading annotations:', error);
+    tableBody.innerHTML = '<tr><td colspan="5" class="py-3 px-4 text-center text-red-500">Error loading annotations. Please try again.</td></tr>';
+    showNotification('Failed to load annotations.', 'error');
   }
 }
 
-function downloadPaper() {
-  alert('PDF download functionality would be implemented here.');
+// Function to render annotations in admin panel
+function renderAnnotations(annotations) {
+  const tableBody = document.getElementById('admin-annotations-body');
+  if (!tableBody) {
+    console.error('admin-annotations-body not found');
+    return;
+  }
+
+  tableBody.innerHTML = ''; // Clear existing content
+  annotations.forEach(annotation => {
+    const row = document.createElement('tr');
+    row.className = 'border-t border-gray-200';
+    row.innerHTML = `
+      <td class="py-3 px-4 text-sm text-dark-slate">${annotation.question_id || 'N/A'}</td>
+      <td class="py-3 px-4 text-sm text-dark-slate">${annotation.question || 'N/A'}</td>
+      <td class="py-3 px-4 text-sm text-dark-slate">${annotation.annotated_prerequisite || 'N/A'}</td>
+      <td class="py-3 px-4 text-sm text-dark-slate">${annotation.annotator_name || 'N/A'}</td>
+      <td class="py-3 px-4 text-sm text-dark-slate">${new Date(annotation.createdAt).toLocaleString() || 'N/A'}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+  console.log('Annotations rendered:', annotations.length, new Date().toISOString()); // Debug log
 }
 
+// Function to generate and download report
+async function generateReport() {
+  try {
+    const response = await fetch('/api/admin/report', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    console.log('Report fetch response:', response.status, new Date().toISOString()); // Debug log
+    if (!response.ok) {
+      throw new Error(`Failed to generate report: ${response.status}`);
+    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'annotations_report.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+    showNotification('Report downloaded successfully!', 'success');
+  } catch (error) {
+    console.error('Error generating report:', error);
+    showNotification('Failed to generate report.', 'error');
+  }
+}
+
+// Toggle mobile menu
+function toggleMobileMenu() {
+  const mobileMenu = document.getElementById('mobile-menu');
+  const icon = document.getElementById('mobile-menu-icon');
+  if (mobileMenu && icon) {
+    mobileMenu.classList.toggle('hidden');
+    icon.innerHTML = mobileMenu.classList.contains('hidden')
+      ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>'
+      : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
+  }
+}
+
+// Download paper
+function downloadPaper() {
+  window.location.href = '/path/to/paper.pdf'; // Update with actual paper URL
+}
+
+// View code
 function viewCode() {
   window.open('https://github.com/placeholder/eduvlm-bench', '_blank');
 }
 
+// Show citation modal
 function showCitation() {
   const modal = document.getElementById('citation-modal');
   if (modal) modal.classList.remove('hidden');
 }
 
+// Hide citation modal
 function hideCitation() {
   const modal = document.getElementById('citation-modal');
   if (modal) modal.classList.add('hidden');
 }
 
+// Copy citation to clipboard
 function copyCitation() {
   const citationText = document.getElementById('citation-text');
   if (citationText && navigator.clipboard) {
-    navigator.clipboard.writeText(citationText.textContent).then(() => showNotification('Citation copied to clipboard!', 'success'));
+    navigator.clipboard.writeText(citationText.textContent).then(() => {
+      showNotification('Citation copied to clipboard!', 'success');
+    }).catch(() => {
+      showNotification('Failed to copy citation.', 'error');
+    });
   } else if (citationText) {
     fallbackCopyTextToClipboard(citationText.textContent);
   }
 }
 
+// Fallback for copying text
 function fallbackCopyTextToClipboard(text) {
-  const textArea = document.createElement("textarea");
+  const textArea = document.createElement('textarea');
   textArea.value = text;
-  textArea.style.position = "fixed";
+  textArea.style.position = 'fixed';
   document.body.appendChild(textArea);
   textArea.focus();
   textArea.select();
@@ -225,131 +291,23 @@ function fallbackCopyTextToClipboard(text) {
   document.body.removeChild(textArea);
 }
 
-async function checkAuth() {
-  try {
-    const response = await fetch('/api/user', { credentials: 'include' });
-    if (response.ok) {
-      const data = await response.json();
-      currentUser = data.user;
-      if (window.authManager) {
-        window.authManager.currentUser = data.user;
-        window.authManager.isAuthenticated = true;
-        window.authManager.updateUI();
-      }
-      renderUserInfo();
-    }
-  } catch (error) {
-    console.error('Auth check failed:', error);
+// Show notification
+function showNotification(message, type = 'info') {
+  let notification = document.getElementById('notification');
+  if (!notification) {
+    notification = document.createElement('div');
+    notification.id = 'notification';
+    notification.className = 'notification';
+    document.body.appendChild(notification);
   }
+  notification.textContent = message;
+  notification.className = `notification ${type} show`;
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 3000);
 }
 
-function renderUserInfo() {
-  const userInfo = document.getElementById('user-info');
-  if (userInfo && currentUser) {
-    userInfo.classList.remove('hidden');
-    userInfo.innerHTML = `
-      <div class="user-info-content">
-        <div class="user-avatar">${currentUser.firstName[0]}${currentUser.lastName[0]}</div>
-        <div class="user-details">
-          <div class="user-name">${currentUser.firstName} ${currentUser.lastName}</div>
-          <div class="user-username">@${currentUser.username}</div>
-          <div class="user-email">${currentUser.email}</div>
-        </div>
-        <button class="logout-btn" onclick="logout()">Logout</button>
-      </div>`;
-  }
-}
-
-async function login() {
-  const email = document.getElementById('login-email').value;
-  const password = document.getElementById('login-password').value;
-  const errorDiv = document.getElementById('login-error');
-
-  try {
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ email, password })
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      currentUser = data.user;
-      if (window.authManager) {
-        window.authManager.currentUser = data.user;
-        window.authManager.isAuthenticated = true;
-        window.authManager.updateUI();
-      }
-      const loginModal = document.getElementById('login-modal');
-      if (loginModal) loginModal.classList.add('hidden');
-      showNotification('Login successful!', 'success');
-      renderUserInfo();
-    } else {
-      if (errorDiv) {
-        errorDiv.style.display = 'block';
-        errorDiv.textContent = data.error || 'Login failed';
-      }
-    }
-  } catch (error) {
-    if (errorDiv) {
-      errorDiv.style.display = 'block';
-      errorDiv.textContent = 'Server error during login';
-    }
-  }
-}
-
-async function signup() {
-  const firstName = document.getElementById('signup-firstName').value;
-  const lastName = document.getElementById('signup-lastName').value;
-  const username = document.getElementById('signup-username').value;
-  const email = document.getElementById('signup-email').value;
-  const password = document.getElementById('signup-password').value;
-  const confirmPassword = document.getElementById('signup-confirm-password').value;
-  const errorDiv = document.getElementById('signup-error');
-
-  if (password !== confirmPassword) {
-    if (errorDiv) {
-      errorDiv.style.display = 'block';
-      errorDiv.textContent = 'Passwords do not match';
-    }
-    return;
-  }
-
-  try {
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ firstName, lastName, username, email, password })
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      currentUser = data.user;
-      if (window.authManager) {
-        window.authManager.currentUser = data.user;
-        window.authManager.isAuthenticated = true;
-        window.authManager.updateUI();
-      }
-      const signupModal = document.getElementById('signup-modal');
-      if (signupModal) signupModal.classList.add('hidden');
-      showNotification('Registration successful!', 'success');
-      renderUserInfo();
-    } else {
-      if (errorDiv) {
-        errorDiv.style.display = 'block';
-        errorDiv.textContent = data.error || 'Registration failed';
-      }
-    }
-  } catch (error) {
-    if (errorDiv) {
-      errorDiv.style.display = 'block';
-      errorDiv.textContent = 'Server error during registration';
-    }
-  }
-}
-
+// Switch to signup modal
 function switchToSignup() {
   const loginModal = document.getElementById('login-modal');
   const signupModal = document.getElementById('signup-modal');
@@ -357,6 +315,7 @@ function switchToSignup() {
   if (signupModal) signupModal.classList.remove('hidden');
 }
 
+// Switch to login modal
 function switchToLogin() {
   const signupModal = document.getElementById('signup-modal');
   const loginModal = document.getElementById('login-modal');
@@ -364,44 +323,7 @@ function switchToLogin() {
   if (loginModal) loginModal.classList.remove('hidden');
 }
 
-async function logout() {
-  try {
-    await fetch('/api/logout', { method: 'POST', credentials: 'include' });
-    currentUser = null;
-    if (window.authManager) {
-      window.authManager.currentUser = null;
-      window.authManager.isAuthenticated = false;
-      window.authManager.updateUI();
-    }
-    const userInfo = document.getElementById('user-info');
-    const loginBtn = document.getElementById('login-btn');
-    const signupBtn = document.getElementById('signup-btn');
-    const mobileLoginBtn = document.getElementById('mobile-login-btn');
-    const mobileSignupBtn = document.getElementById('mobile-signup-btn');
-    if (userInfo) userInfo.classList.add('hidden');
-    if (loginBtn) loginBtn.classList.remove('hidden');
-    if (signupBtn) signupBtn.classList.remove('hidden');
-    if (mobileLoginBtn) mobileLoginBtn.classList.remove('hidden');
-    if (mobileSignupBtn) mobileSignupBtn.classList.remove('hidden');
-    showNotification('Logout successful', 'success');
-    window.location.reload();
-  } catch (error) {
-    console.error('Logout failed:', error);
-    showNotification('Logout failed', 'error');
-  }
-}
-
-function showNotification(message, type) {
-  const notification = document.getElementById('notification');
-  if (notification) {
-    notification.textContent = message;
-    notification.className = `notification ${type} show`;
-    setTimeout(() => {
-      if (notification) notification.className = `notification ${type}`;
-    }, 3000);
-  }
-}
-
+// Filter leaderboard data
 function filterData(data) {
   return data.filter(entry => {
     const matchesType = currentFilters.modelType === 'all' || entry.modelName.toLowerCase().includes(currentFilters.modelType.toLowerCase());
@@ -410,6 +332,7 @@ function filterData(data) {
   });
 }
 
+// Sort leaderboard data
 function sortData(data, column, direction) {
   return [...data].sort((a, b) => {
     const aVal = a[column];
@@ -419,6 +342,7 @@ function sortData(data, column, direction) {
   });
 }
 
+// Sort table
 function sortTable(column) {
   if (currentSort.column === column) {
     currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
@@ -429,6 +353,7 @@ function sortTable(column) {
   renderLeaderboard();
 }
 
+// Reset leaderboard filters
 function resetFilters() {
   currentFilters.modelType = 'all';
   currentFilters.size = 'all';
@@ -440,12 +365,14 @@ function resetFilters() {
   renderLeaderboard();
 }
 
+// Get rank badge class
 function getRankBadgeClass(rank) {
   if (rank === 1) return 'rank-badge rank-1';
   if (rank === 2 || rank === 3) return 'rank-badge rank-2';
   return 'rank-badge rank-other';
 }
 
+// Get score class
 function getScoreClass(score, isOverall = false) {
   if (isOverall && score >= 75) return 'score-overall-excellent';
   if (score >= 80) return 'score-excellent';
@@ -453,6 +380,7 @@ function getScoreClass(score, isOverall = false) {
   return 'score-average';
 }
 
+// Update sort icons
 function updateSortIcons() {
   const sortIcons = document.querySelectorAll('.sort-icon');
   if (sortIcons) {
@@ -468,6 +396,7 @@ function updateSortIcons() {
   }
 }
 
+// Render leaderboard
 function renderLeaderboard() {
   const filtered = filterData(leaderboardData);
   const sorted = sortData(filtered, currentSort.column, currentSort.direction);
@@ -511,25 +440,15 @@ function renderLeaderboard() {
   updateSortIcons();
 }
 
-document.addEventListener('click', function(e) {
-  const modal = document.getElementById('citation-modal');
-  if (modal && e.target === modal) hideCitation();
-});
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') hideCitation();
-});
-
-// Updated function to detect prerequisites using Gemini Flash
+// Detect prerequisites using Gemini Flash
 async function detectPrerequisites(question, correctAnswer, wrongAnswer) {
-  console.log('Detecting prerequisites for:', { question, correctAnswer, wrongAnswer }); // Debug log
+  console.log('Detecting prerequisites for:', { question, correctAnswer, wrongAnswer }, new Date().toISOString()); // Debug log
   const prerequisitesDisplay = document.getElementById('prerequisitesDisplay');
   if (!prerequisitesDisplay) {
     console.error('prerequisitesDisplay element not found in DOM');
     showNotification('UI error: prerequisitesDisplay element not found.', 'error');
     return;
   }
-  // Clear previous content with a timestamp to track updates
   prerequisitesDisplay.textContent = 'Loading prerequisites...';
   console.log('Cleared prerequisitesDisplay at:', new Date().toISOString()); // Debug log
   try {
@@ -539,28 +458,24 @@ async function detectPrerequisites(question, correctAnswer, wrongAnswer) {
       credentials: 'include',
       body: JSON.stringify({ question, correct_answer: correctAnswer, wrong_answer: wrongAnswer })
     });
+    console.log('Prerequisite detection response:', response.status, new Date().toISOString()); // Debug log
     if (response.ok) {
       const data = await response.json();
-      console.log('Prerequisite detection response:', data); // Debug log
-      // Validate response structure
+      console.log('Prerequisite detection data:', data); // Debug log
       if (!data || !data.all_prerequisites || !('single_missing_prerequisite' in data)) {
         console.error('Invalid response structure:', data);
         showNotification('Invalid response from server.', 'error');
         prerequisitesDisplay.textContent = 'All Prerequisites: None, Missing Prerequisite: None';
         return;
       }
-      // Handle all_prerequisites
       const allPrereqs = Array.isArray(data.all_prerequisites) && data.all_prerequisites.length > 0 
         ? data.all_prerequisites.join(', ')
         : 'None';
-      // Handle single_missing_prerequisite
       const missingPrereq = typeof data.single_missing_prerequisite === 'string' && data.single_missing_prerequisite.trim() !== '' && data.single_missing_prerequisite !== 'None'
         ? data.single_missing_prerequisite
         : 'None';
-      console.log('Rendering prerequisites:', { allPrereqs, missingPrereq }); // Debug log
+      console.log('Rendering prerequisites:', { allPrereqs, missingPrereq }, new Date().toISOString()); // Debug log
       prerequisitesDisplay.innerHTML = `<div>All Prerequisites: ${allPrereqs}</div><div>Missing Prerequisite: ${missingPrereq}</div>`;
-      console.log('Updated prerequisitesDisplay at:', new Date().toISOString()); // Debug log
-      // Clear input fields if questionInput was used
       const questionInput = document.getElementById('questionInput');
       if (questionInput && questionInput.value) {
         questionInput.value = '';
@@ -580,3 +495,14 @@ async function detectPrerequisites(question, correctAnswer, wrongAnswer) {
     prerequisitesDisplay.innerHTML = '<div>All Prerequisites: None</div><div>Missing Prerequisite: None</div>';
   }
 }
+
+// Handle modal close on click outside
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('citation-modal');
+  if (modal && e.target === modal) hideCitation();
+});
+
+// Handle modal close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') hideCitation();
+});
