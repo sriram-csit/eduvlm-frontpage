@@ -14,6 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
     
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -29,15 +32,12 @@
                 </div>
                 
                 <!-- Desktop Navigation -->
-                <!-- <div class="hidden md:flex space-x-6">
-                    <a href="index.html" class="nav-link">
-                        Research
-                    </a>
-                    <a href="leaderboard.html" class="nav-link active">
-                        Leaderboard
-                    </a>
-                </div> -->
-                
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="nav-link">Research</a>
+                    <a href="leaderboard.html" class="nav-link active">Leaderboard</a>
+                    <a href="annotator.html" class="nav-link">Annotator</a>
+                </div>
+
                 <!-- Desktop Download Button & Auth -->
                 <div class="hidden md:flex items-center space-x-3">
                     <button onclick="downloadPaper()" class="bg-accent-amber text-white hover:bg-yellow-500 transition-colors font-medium px-4 py-2 rounded-md flex items-center text-sm">
@@ -46,14 +46,6 @@
                         </svg>
                         Download
                     </button>
-                                    <div class="hidden md:flex space-x-6">
-                    <a href="index.html" class="nav-link">
-                        Research
-                    </a>
-                    <a href="leaderboard.html" class="nav-link active">
-                        Leaderboard
-                    </a>
-                </div>
                     <!-- Authentication Section -->
                     <div id="authContainer" class="auth-container flex space-x-2">
                         <button id="showLoginBtn" class="auth-btn login-btn bg-academic-blue text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Login</button>
@@ -79,19 +71,15 @@
             <!-- Mobile Navigation Menu -->
             <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200 py-4">
                 <div class="space-y-3">
-                    <a href="index.html" class="block nav-link-mobile">
-                        Research
-                    </a>
-                    <a href="leaderboard.html" class="block nav-link-mobile active">
-                        Leaderboard
-                    </a>
-                                            <!-- Mobile Auth Buttons -->
-                        <button id="mobileLoginBtn" onclick="document.getElementById('loginModal').style.display='flex'" class="block w-full bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
-                             Login
-                        </button>
-                        <button id="mobileRegisterBtn" onclick="document.getElementById('registerModal').style.display='flex'" class="block w-full border border-academic-blue text-academic-blue hover:bg-gray-50 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
-                            Sign Up
-                        </button>
+                    <a href="index.html" class="block nav-link-mobile">Research</a>
+                    <a href="leaderboard.html" class="block nav-link-mobile active">Leaderboard</a>
+                    <a href="annotator.html" class="block nav-link-mobile">Annotator</a>
+                    <button id="mobileLoginBtn" onclick="document.getElementById('loginModal').classList.remove('hidden')" class="block w-full bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
+                        Login
+                    </button>
+                    <button id="mobileRegisterBtn" onclick="document.getElementById('registerModal').classList.remove('hidden')" class="block w-full border border-academic-blue text-academic-blue hover:bg-gray-50 transition-colors font-medium px-4 py-2 rounded-md text-center text-sm">
+                        Sign Up
+                    </button>
                     <button onclick="downloadPaper()" class="w-full bg-accent-amber text-white hover:bg-yellow-500 transition-colors font-medium px-4 py-2 rounded-md flex items-center justify-center text-sm mt-4">
                         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -124,7 +112,6 @@
                             <option value="all">All Model Types</option>
                             <option value="LLM">LLM</option>
                             <option value="VLM">VLM</option>
-                            <!-- <option value="VLM">Human</option> -->
                         </select>
                         
                         <select id="size-filter" class="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm flex-1 sm:flex-none">
@@ -156,28 +143,27 @@
                         <table class="w-full">
                             <thead class="bg-light-grey">
                                 <tr>
-  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('rank')">
-    Rank <span id="rank-sort" class="sort-icon">↕</span>
-  </th>
-  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelName')">
-    Model Name <span id="modelName-sort" class="sort-icon">↕</span>
-  </th>
-  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelSize')">
-    Model Size <span id="modelSize-sort" class="sort-icon">↕</span>
-  </th>
-  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelType')">
-    Model Type <span id="modelType-sort" class="sort-icon">↕</span>
-  </th>
-  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('detectionAccuracy')">
-    <span class="hidden lg:inline">Detection Accuracy (pass@1)</span>
-    <span class="lg:hidden">Accuracy</span>
-    <span id="detectionAccuracy-sort" class="sort-icon">↕</span>
-  </th>
-  <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('notes')">
-    Notes <span id="notes-sort" class="sort-icon">↕</span>
-  </th>
-</tr>
-
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('rank')">
+                                        Rank <span id="rank-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelName')">
+                                        Model Name <span id="modelName-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelSize')">
+                                        Model Size <span id="modelSize-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('modelType')">
+                                        Model Type <span id="modelType-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('detectionAccuracy')">
+                                        <span class="hidden lg:inline">Detection Accuracy (pass@1)</span>
+                                        <span class="lg:hidden">Accuracy</span>
+                                        <span id="detectionAccuracy-sort" class="sort-icon">↕</span>
+                                    </th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-dark-slate uppercase tracking-wider cursor-pointer" onclick="sortTable('notes')">
+                                        Notes <span id="notes-sort" class="sort-icon">↕</span>
+                                    </th>
+                                </tr>
                             </thead>
                             <tbody id="leaderboard-body" class="bg-white divide-y divide-gray-200">
                                 <!-- Table rows will be populated by JavaScript -->
@@ -200,11 +186,10 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-light-grey border-t border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <!-- About Section -->
-                <div class="md:col-span-2">
+    <footer class="bg-light-grey border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="col-span-2">
                     <h3 class="text-lg font-semibold mb-4 text-academic-blue">
                         EduVLM-Bench
                     </h3>
@@ -213,27 +198,16 @@
                         Our framework focuses on identifying prerequisite concepts and bridging the gap between confusion and conceptual clarity.
                     </p>
                 </div>
-
-                <!-- Quick Links -->
                 <div>
                     <h4 class="text-sm font-semibold mb-4 text-dark-slate">
                         Quick Links
                     </h4>
                     <ul class="space-y-3">
-                        <li>
-                            <a href="index.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
-                                Research Paper
-                            </a>
-                        </li>
-                        <li>
-                            <a href="leaderboard.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
-                                Model Leaderboard
-                            </a>
-                        </li>
+                        <li><a href="index.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">Research Paper</a></li>
+                        <li><a href="leaderboard.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">Model Leaderboard</a></li>
+                        <li><a href="annotator.html" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">Annotator</a></li>
                     </ul>
                 </div>
-
-                <!-- Authors -->
                 <div>
                     <h4 class="text-sm font-semibold mb-4 text-dark-slate">
                         Authors
@@ -246,95 +220,237 @@
                     </ul>
                 </div>
             </div>
-
-            <!-- Bottom Bar -->
             <div class="border-t border-gray-300 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center">
                 <p class="text-sm text-slate-grey">
                     © <span id="current-year"></span> EduVLM-Bench. All rights reserved.
                 </p>
                 <div class="flex space-x-6 mt-4 sm:mt-0">
-                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
-                        Privacy Policy
-                    </a>
-                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
-                        Terms of Use
-                    </a>
-                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">
-                        Contact
-                    </a>
+                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">Privacy Policy</a>
+                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">Terms of Use</a>
+                    <a href="#" class="text-sm text-slate-grey hover:text-academic-blue transition-colors">Contact</a>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- JavaScript -->
     <!-- Login Modal -->
-    <div id="loginModal" class="auth-modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Login to EduVLM-Bench</h2>
-                <button class="close-modal">&times;</button>
+    <div id="loginModal" class="auth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Login to EduVLM-Bench</h2>
+                <button class="close-modal text-2xl cursor-pointer" onclick="document.getElementById('loginModal').classList.add('hidden')">×</button>
             </div>
-            <form id="loginForm" class="auth-form">
-                <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" name="email" required>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="loginEmail" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" name="password" required>
+                <div>
+                    <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="loginPassword" name="password" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <button type="submit" class="submit-btn">Login</button>
-                <p class="switch-auth">
-                    Don't have an account? <a href="#" id="switchToRegister">Sign up</a>
-                </p>
+                <button type="submit" class="w-full bg-academic-blue text-white p-2 rounded-md hover:bg-blue-700">Login</button>
+                <p class="text-center text-sm">Don't have an account? <a href="#" id="switchToRegister" class="text-academic-blue hover:underline">Sign up</a></p>
             </form>
         </div>
     </div>
 
     <!-- Register Modal -->
-    <div id="registerModal" class="auth-modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Sign Up for EduVLM-Bench</h2>
-                <button class="close-modal">&times;</button>
+    <div id="registerModal" class="auth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Sign Up for EduVLM-Bench</h2>
+                <button class="close-modal text-2xl cursor-pointer" onclick="document.getElementById('registerModal').classList.add('hidden')">×</button>
             </div>
-            <form id="registerForm" class="auth-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="firstName">First Name</label>
-                        <input type="text" id="firstName" name="firstName" required>
+            <form id="registerForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" id="firstName" name="firstName" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                     </div>
-                    <div class="form-group">
-                        <label for="lastName">Last Name</label>
-                        <input type="text" id="lastName" name="lastName" required>
+                    <div>
+                        <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required minlength="3" maxlength="20">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="username" name="username" required minlength="3" maxlength="20" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <div class="form-group">
-                    <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" name="email" required>
+                <div>
+                    <label for="registerEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="registerEmail" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <div class="form-group">
-                    <label for="registerPassword">Password</label>
-                    <input type="password" id="registerPassword" name="password" required minlength="6">
+                <div>
+                    <label for="registerPassword" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="registerPassword" name="password" required minlength="6" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
-                <button type="submit" class="submit-btn">Register</button>
-                <p class="switch-auth">
-                    Already have an account? <a href="#" id="switchToLogin">Login</a>
-                </p>
+                <button type="submit" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Register</button>
+                <p class="text-center text-sm">Already have an account? <a href="#" id="switchToLogin" class="text-academic-blue hover:underline">Login</a></p>
             </form>
         </div>
     </div>
 
+    <!-- JavaScript -->
     <script src="script.js"></script>
     <script src="auth.js"></script>
+    <script>
+        // Ensure Feather Icons are initialized
+        feather.replace();
+
+        // Update current year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Authentication handling
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/user', { credentials: 'include' });
+                console.log('Auth response status:', response.status);
+                if (response.ok) {
+                    const data = await response.json();
+                    window.currentUser = data.user; // Assign to global window object
+                    document.getElementById('authContainer').style.display = 'none';
+                    document.getElementById('userInfo').style.display = 'flex';
+                    document.getElementById('userInfo').innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-gray-300 w-8 h-8 flex items-center justify-center rounded-full">${data.user.firstName[0]}${data.user.lastName[0]}</span>
+                            <span class="text-sm font-medium">Welcome, ${data.user.username}</span>
+                        </div>
+                        <button id="logoutBtn" class="ml-2 text-sm text-academic-blue hover:underline">Logout</button>
+                    `;
+                    document.getElementById('logoutBtn').addEventListener('click', logout);
+                } else {
+                    document.getElementById('authContainer').style.display = 'flex';
+                    document.getElementById('userInfo').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                document.getElementById('authContainer').style.display = 'flex';
+                document.getElementById('userInfo').style.display = 'none';
+            }
+        }
+
+        async function login(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
+                if (response.ok) {
+                    document.getElementById('loginModal').classList.add('hidden');
+                    await checkAuth();
+                } else {
+                    const errorText = await response.text();
+                    showNotification(`Login failed: ${errorText}`, 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('Server error during login', 'error');
+            }
+        }
+
+        async function signup(e) {
+            e.preventDefault();
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match', 'error');
+                return;
+            }
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ firstName, lastName, username, email, password })
+                });
+                if (response.ok) {
+                    document.getElementById('registerModal').classList.add('hidden');
+                    await checkAuth();
+                } else {
+                    const errorText = await response.text();
+                    showNotification(`Registration failed: ${errorText}`, 'error');
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                showNotification('Server error during registration', 'error');
+            }
+        }
+
+        function logout() {
+            fetch('/api/logout', { method: 'POST', credentials: 'include' })
+                .then(response => {
+                    if (response.ok) {
+                      window.currentUser = null;
+                        document.getElementById('userInfo').style.display = 'none';
+                        document.getElementById('authContainer').style.display = 'flex';
+                        showNotification('Logged out successfully', 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                    showNotification('Error logging out', 'error');
+                });
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.className = `fixed bottom-4 right-4 p-3 rounded-md shadow-lg ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white text-sm`;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', login);
+        document.getElementById('registerForm').addEventListener('submit', signup);
+        document.getElementById('showLoginBtn').addEventListener('click', () => document.getElementById('loginModal').classList.remove('hidden'));
+        document.getElementById('showRegisterBtn').addEventListener('click', () => document.getElementById('registerModal').classList.remove('hidden'));
+        document.getElementById('mobileLoginBtn').addEventListener('click', () => document.getElementById('loginModal').classList.remove('hidden'));
+        document.getElementById('mobileRegisterBtn').addEventListener('click', () => document.getElementById('registerModal').classList.remove('hidden'));
+        document.getElementById('switchToRegister').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('registerModal').classList.remove('hidden');
+        });
+        document.getElementById('switchToLogin').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('registerModal').classList.add('hidden');
+            document.getElementById('loginModal').classList.remove('hidden');
+        });
+
+        function downloadPaper() {
+            alert('PDF download functionality would be implemented here.');
+        }
+
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('mobile-menu-icon');
+            if (mobileMenu && icon) {
+                if (mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.remove('hidden');
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
+                } else {
+                    mobileMenu.classList.add('hidden');
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+                }
+            }
+        }
+
+        // Initial authentication check
+        document.addEventListener('DOMContentLoaded', checkAuth);
+    </script>
 </body>
 </html>
