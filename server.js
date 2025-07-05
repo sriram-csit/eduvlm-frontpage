@@ -430,8 +430,9 @@ app.post('/api/detect-prereqs', authenticateToken, async (req, res) => {
     if (!question) {
       return res.status(400).json({ error: 'Question is required' });
     }
-
-    const pythonApiUrl = 'http://localhost:5000/api/detect-prereqs';
+    
+//http://localhost:5000/api/detect-prereqs
+    const pythonApiUrl = 'https://eduvlm-frontpage.onrender.com/api/detect-prereqs';
     const pythonResponse = await fetch(pythonApiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
