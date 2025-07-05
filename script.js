@@ -286,7 +286,7 @@ function toggleMobileMenu() {
 
 // Download paper
 function downloadPaper() {
-  window.location.href = 'https://drive.google.com/uc?export=download&id=1kFW3qfC78LgR02Kd9X9hOFy4y4CbScnc';
+  window.location.href = 'https://drive.google.com/file/d/1yjxI3PP3NmfFNHDrGOrbJdIMhxfzQHRH/view?usp=sharing';
 }
 
 // View code
