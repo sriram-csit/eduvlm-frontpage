@@ -1,4 +1,3 @@
-
 // Main JavaScript for EduVLM-Bench frontend
 let leaderboardData = [];
 const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/1BiHQZ5-DpgB_RlrxC-w0q_zxD9Tj-YxYpG9vU01IPD8/gviz/tq?sheet=Sheet1';
@@ -24,7 +23,6 @@ fetch(spreadsheetURL)
     overallScore: parseFloat((row.c[3]?.v || 0).toFixed(2)) // Use detection accuracy as score
   };
 });
-
 
     // Sort by overallScore descending
     leaderboardData.sort((a, b) => b.overallScore - a.overallScore);
@@ -288,7 +286,7 @@ function toggleMobileMenu() {
 
 // Download paper
 function downloadPaper() {
-  window.location.href = '/path/to/paper.pdf'; // Update with actual paper URL
+  window.location.href = 'https://drive.google.com/uc?export=download&id=1kFW3qfC78LgR02Kd9X9hOFy4y4CbScnc';
 }
 
 // View code
@@ -490,7 +488,6 @@ function renderLeaderboard() {
         </div>
       `;
 
-
       mobileContainer.appendChild(card);
     });
   }
@@ -533,7 +530,7 @@ async function detectPrerequisites(question, correctAnswer, wrongAnswer) {
         ? data.single_missing_prerequisite
         : 'None';
       console.log('Rendering prerequisites:', { allPrereqs, missingPrereq }, new Date().toISOString()); // Debug log
-      prerequisitesDisplay.innerHTML = `<div>All Prerequisites: ${allPrereqs}</div><div>Missing Prerequisite: ${missingPrereq}</div>`;
+      prerequisites_Displaysplay.innerHTML = `<div>All Prerequisites: ${allPrereqs}</div><div>Missing Prerequisite: ${missingPrereq}</div>`;
       const questionInput = document.getElementById('questionInput');
       if (questionInput && questionInput.value) {
         questionInput.value = '';
