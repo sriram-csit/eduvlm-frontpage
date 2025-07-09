@@ -18,10 +18,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/eduvlm-bench';
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/1YGX3bVxTXepx1sar_X_Zmo8LE7CPduV3S7CHhV7zBzc/export?format=csv';
+const UNIMODAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/1YGX3bVxTXepx1sar_X_Zmo8LE7CPduV3S7CHhV7zBzc/export?format=csv';
+const MULTIMODAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/1QTFLq1VOyJCnR_iCVty-0WSXdH5YI-TRjv6PiaiFk5I/export?format=csv';
 const FALLBACK_CSV_PATH = path.join(__dirname, 'fallback_questions.csv');
 
-console.log('Attempting to load CSV from:', CSV_URL); // Debug log for URL verification
+console.log('Attempting to load CSV from:', UNIMODAL_CSV_URL); // Debug log for URL verification
 
 // Middleware
 app.use(cors({
@@ -96,6 +97,8 @@ const annotationSchema = new mongoose.Schema({
   question: { type: String, required: true },
   annotated_prerequisite: { type: String, required: true },
   annotator_name: { type: String, required: true },
+  dataset_type: { type: String, default: 'unimodal' },
+  image_url: { type: String, default: null },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -172,83 +175,131 @@ const isAdmin = async (req, res, next) => {
 };
 
 // Load CSV data from Google Sheets
-let questions = [];
-const loadCSV = async () => {
+let unimodalQuestions = [];
+let multimodalQuestions = [];
+
+const loadCSV = async (datasetType = 'unimodal') => {
+  const CSV_URL = datasetType === 'multimodal' ? MULTIMODAL_CSV_URL : UNIMODAL_CSV_URL;
+  const questionsArray = datasetType === 'multimodal' ? multimodalQuestions : unimodalQuestions;
+  
   try {
-    console.log('Fetching CSV from Google Sheets:', CSV_URL);
+    console.log(`Fetching ${datasetType} CSV from Google Sheets:`, CSV_URL);
     const response = await fetch(CSV_URL, { timeout: 10000 });
     if (!response.ok) {
       throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
     }
 
     const buffer = await response.buffer();
-    console.log('CSV fetched, size:', buffer.length, 'bytes'); // Debug log
+    console.log(`${datasetType} CSV fetched, size:`, buffer.length, 'bytes');
     const bufferStream = new stream.PassThrough();
     bufferStream.end(buffer);
 
-    questions = [];
+    questionsArray.length = 0; // Clear existing data
     bufferStream
       .pipe(csv())
       .on('data', (row) => {
-        console.log('Parsed CSV row:', row); // Debug log
-        const prerequisites = row.all_prerequisites
-          ? row.all_prerequisites
-              .replace(/[\[\]"]+/g, '')
-              .split(',')
-              .map(item => item.trim())
-              .filter(item => item)
-          : [];
-        questions.push({
-          question_id: row.question_id || 'N/A',
-          question: row.question || 'N/A',
-          correct_answer: row.correct_answer || 'N/A',
-          all_prerequisites: prerequisites,
-          wrong_answer: row.wrong_answer || 'N/A'
-        });
+        console.log(`Parsed ${datasetType} CSV row:`, row);
+        
+        if (datasetType === 'multimodal') {
+          // Parse multimodal data structure
+          const prerequisites = row.prerequisites
+            ? row.prerequisites.split(',').map(item => item.trim()).filter(item => item)
+            : [];
+          
+          let wrongAnswerArray = [];
+          try {
+            if (row.wrong_answer && row.wrong_answer.startsWith('[')) {
+              wrongAnswerArray = JSON.parse(row.wrong_answer);
+            } else {
+              wrongAnswerArray = row.wrong_answer ? [row.wrong_answer] : [];
+            }
+          } catch (e) {
+            wrongAnswerArray = row.wrong_answer ? [row.wrong_answer] : [];
+          }
+          
+          questionsArray.push({
+            question_id: row.question_id || 'N/A',
+            question: row.question || 'N/A',
+            correct_answer: row.correct_answer || 'N/A',
+            all_prerequisites: prerequisites,
+            wrong_answer: wrongAnswerArray.length > 0 ? wrongAnswerArray[0] : 'N/A',
+            wrong_answers: wrongAnswerArray,
+            image_url: row.image_url || null,
+            image_caption: row.image_caption || null,
+            dataset_type: 'multimodal'
+          });
+        } else {
+          // Parse unimodal data structure
+          const prerequisites = row.all_prerequisites
+            ? row.all_prerequisites
+                .replace(/[\[\]"]+/g, '')
+                .split(',')
+                .map(item => item.trim())
+                .filter(item => item)
+            : [];
+          
+          questionsArray.push({
+            question_id: row.question_id || 'N/A',
+            question: row.question || 'N/A',
+            correct_answer: row.correct_answer || 'N/A',
+            all_prerequisites: prerequisites,
+            wrong_answer: row.wrong_answer || 'N/A',
+            dataset_type: 'unimodal'
+          });
+        }
       })
       .on('end', () => {
-        console.log('CSV file loaded successfully with', questions.length, 'questions');
-        if (questions.length === 0) {
-          console.warn('Warning: CSV loaded but no questions parsed. Check CSV format.');
-          loadFallbackData();
+        console.log(`${datasetType} CSV file loaded successfully with`, questionsArray.length, 'questions');
+        if (questionsArray.length === 0) {
+          console.warn(`Warning: ${datasetType} CSV loaded but no questions parsed. Check CSV format.`);
+          if (datasetType === 'unimodal') {
+            loadFallbackData();
+          }
         }
       })
       .on('error', (err) => {
-        console.error('Error parsing CSV:', err.message);
-        questions = [];
-        loadFallbackData();
+        console.error(`Error parsing ${datasetType} CSV:`, err.message);
+        questionsArray.length = 0;
+        if (datasetType === 'unimodal') {
+          loadFallbackData();
+        }
       });
   } catch (error) {
-    console.error('Error loading CSV from Google Sheets:', error.message);
-    questions = [];
-    loadFallbackData();
+    console.error(`Error loading ${datasetType} CSV from Google Sheets:`, error.message);
+    questionsArray.length = 0;
+    if (datasetType === 'unimodal') {
+      loadFallbackData();
+    }
   }
 };
 
 // Fallback to test data
 const loadFallbackData = () => {
   console.log('Loading fallback test data');
-  questions = [
+  unimodalQuestions = [
     {
       question_id: 'Q001',
       question: 'What is the derivative of x^2?',
       correct_answer: '2x',
       all_prerequisites: ['Basic algebra', 'Introduction to derivatives'],
-      wrong_answer: 'x^2'
+      wrong_answer: 'x^2',
+      dataset_type: 'unimodal'
     },
     {
       question_id: 'Q002',
       question: 'What is 2 + 2?',
       correct_answer: '4',
       all_prerequisites: ['Basic arithmetic'],
-      wrong_answer: '22'
+      wrong_answer: '22',
+      dataset_type: 'unimodal'
     }
   ];
-  console.log('Loaded fallback test data with', questions.length, 'questions');
+  console.log('Loaded fallback test data with', unimodalQuestions.length, 'questions');
 };
 
 // Load CSV data on server start
-loadCSV();
+loadCSV('unimodal');
+loadCSV('multimodal');
 
 // Routes
 
@@ -385,18 +436,24 @@ app.get('/api/user', authenticateToken, (req, res) => {
 app.get('/api/questions', authenticateToken, (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const random = req.query.random === '1';
-  if (questions.length === 0) {
-    console.error('No questions available in /api/questions. CSV loading may have failed.');
+  const datasetType = req.query.dataset || 'unimodal';
+  
+  const questionsArray = datasetType === 'multimodal' ? multimodalQuestions : unimodalQuestions;
+  
+  if (questionsArray.length === 0) {
+    console.error(`No ${datasetType} questions available in /api/questions. CSV loading may have failed.`);
     return res.status(500).json({ 
-      error: 'No questions available. Check server logs for CSV loading errors or ensure the Google Sheets file is publicly accessible.'
+      error: `No ${datasetType} questions available. Check server logs for CSV loading errors or ensure the Google Sheets file is publicly accessible.`
     });
   }
+  
   if (random) {
-    const randomIndex = Math.floor(Math.random() * questions.length);
-    console.log('Returning random question:', questions[randomIndex]); // Debug log
-    return res.json([questions[randomIndex]]);
+    const randomIndex = Math.floor(Math.random() * questionsArray.length);
+    console.log(`Returning random ${datasetType} question:`, questionsArray[randomIndex]);
+    return res.json([questionsArray[randomIndex]]);
   }
-  res.json(questions.slice(0, limit));
+  
+  res.json(questionsArray.slice(0, limit));
 });
 
 // Save annotation
@@ -459,7 +516,9 @@ app.post('/api/detect-prereqs', authenticateToken, async (req, res) => {
 
 // Admin Routes
 app.get('/api/admin/questions', [authenticateToken, isAdmin], (req, res) => {
-  res.json(questions);
+  const datasetType = req.query.dataset || 'unimodal';
+  const questionsArray = datasetType === 'multimodal' ? multimodalQuestions : unimodalQuestions;
+  res.json(questionsArray);
 });
 
 app.post('/api/admin/questions', [
@@ -553,13 +612,15 @@ app.get('/api/admin/report', [authenticateToken, isAdmin], async (req, res) => {
   try {
     const annotations = await Annotation.find();
     console.log('Generating report with', annotations.length, 'annotations'); // Debug log
-    let csvContent = 'Question ID,Question,Annotated Prerequisite,Annotator Name,Created At\n';
+    let csvContent = 'Question ID,Question,Annotated Prerequisite,Annotator Name,Dataset Type,Image URL,Created At\n';
     annotations.forEach(annotation => {
       const row = [
         annotation.question_id,
         `"${annotation.question.replace(/"/g, '""')}"`,
         `"${annotation.annotated_prerequisite.replace(/"/g, '""')}"`,
         annotation.annotator_name,
+        annotation.dataset_type || 'unimodal',
+        annotation.image_url || '',
         annotation.createdAt.toISOString()
       ].join(',');
       csvContent += `${row}\n`;

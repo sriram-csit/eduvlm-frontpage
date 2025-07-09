@@ -118,14 +118,24 @@
 
                 <!-- Question Number Selection -->
                 <div id="question-number-selection" class="bg-light-grey rounded-lg p-6 md:p-8 mb-6 hidden">
-                    <h3 class="text-base font-semibold text-dark-slate mb-4">Select Number of Questions to Annotate</h3>
-                    <select id="num-questions" class="border border-gray-300 rounded-md p-2 w-full max-w-xs">
-                        <option value="1">1</option>
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                    </select>
+                    <h3 class="text-base font-semibold text-dark-slate mb-4">Select Dataset and Number of Questions</h3>
+                    <div class="mb-4">
+                        <label for="dataset-type" class="block text-sm font-medium text-dark-slate mb-2">Dataset Type</label>
+                        <select id="dataset-type" class="border border-gray-300 rounded-md p-2 w-full max-w-xs">
+                            <option value="unimodal">Unimodal (GSM-8K)</option>
+                            <option value="multimodal">Multimodal (With Images)</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="num-questions" class="block text-sm font-medium text-dark-slate mb-2">Number of Questions</label>
+                        <select id="num-questions" class="border border-gray-300 rounded-md p-2 w-full max-w-xs">
+                            <option value="1">1</option>
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
                     <button id="start-annotation" class="bg-academic-blue text-white hover:bg-blue-700 transition-colors font-medium px-6 py-3 rounded-md mt-4">
                         Start Annotating
                     </button>
@@ -138,6 +148,16 @@
                     <div id="question-container" class="hidden">
                         <div id="question-id" class="text-sm text-slate-grey mb-2"></div>
                         <div id="question-text" class="text-lg font-medium text-dark-slate mb-4"></div>
+                        
+                        <!-- Image Section for Multimodal -->
+                        <div id="image-section" class="mb-4 hidden">
+                            <h3 class="text-base font-semibold text-dark-slate mb-2">Associated Image</h3>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <img id="question-image" class="max-w-full h-auto rounded-lg mb-2" alt="Question image">
+                                <p id="image-caption" class="text-sm text-slate-grey italic"></p>
+                            </div>
+                        </div>
+                        
                         <div class="flex mb-4 space-x-4">
                             <div class="w-1/2 bg-green-200 p-4 rounded-lg">
                                 <h3 class="text-base font-semibold text-dark-slate mb-2">Correct Answer</h3>
@@ -295,6 +315,7 @@
         let currentQuestionIndex = 0;
         let questions = [];
         let maxQuestions = 0;
+        let selectedDataset = 'unimodal';
 
         // Shuffle array function
         function shuffleArray(array) {
@@ -443,6 +464,7 @@
 
         document.getElementById('start-annotation').addEventListener('click', () => {
             maxQuestions = parseInt(document.getElementById('num-questions').value);
+            selectedDataset = document.getElementById('dataset-type').value;
             if (!window.currentUser) {
                 document.getElementById('error-message').classList.remove('hidden');
                 document.getElementById('error-message').textContent = 'Please log in to start annotating.';
@@ -455,13 +477,13 @@
 
         async function loadQuestions() {
             try {
-                const response = await fetch('/api/questions', { credentials: 'include' });
+                const response = await fetch(`/api/questions?dataset=${selectedDataset}`, { credentials: 'include' });
                 console.log('API response status:', response.status);
                 if (!response.ok) throw new Error(`Failed to fetch questions: ${await response.text()}`);
                 const data = await response.json();
                 console.log('Questions fetched:', data);
                 if (!Array.isArray(data) || data.length === 0) {
-                    throw new Error('No questions available from the server.');
+                    throw new Error(`No ${selectedDataset} questions available from the server.`);
                 }
                 // Shuffle the questions array and take the desired number
                 const shuffledQuestions = shuffleArray([...data]);
@@ -474,7 +496,7 @@
                 console.error('Load questions error:', error);
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('error-message').classList.remove('hidden');
-                document.getElementById('error-message').textContent = `Error loading questions: ${error.message}. Please try again or check your login.`;
+                document.getElementById('error-message').textContent = `Error loading ${selectedDataset} questions: ${error.message}. Please try again or check your login.`;
             }
         }
 
@@ -492,10 +514,24 @@
             const question = questions[currentQuestionIndex];
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('question-container').classList.remove('hidden');
-            document.getElementById('question-id').textContent = `Question ID: ${question.question_id}`;
+            document.getElementById('question-id').textContent = `Question ID: ${question.question_id} (${question.dataset_type || 'unknown'})`;
             document.getElementById('question-text').textContent = question.question;
             document.getElementById('correct-answer').textContent = question.correct_answer || 'Not available';
             document.getElementById('incorrect-answer').textContent = question.wrong_answer || 'Not available';
+
+            // Handle image display for multimodal questions
+            const imageSection = document.getElementById('image-section');
+            const questionImage = document.getElementById('question-image');
+            const imageCaption = document.getElementById('image-caption');
+            
+            if (question.dataset_type === 'multimodal' && question.image_url) {
+                imageSection.classList.remove('hidden');
+                questionImage.src = question.image_url;
+                questionImage.alt = question.image_caption || 'Question image';
+                imageCaption.textContent = question.image_caption || 'No caption available';
+            } else {
+                imageSection.classList.add('hidden');
+            }
 
             const prerequisiteSelect = document.getElementById('prerequisite-select');
             prerequisiteSelect.innerHTML = '<option value="">Select a prerequisite</option>';
@@ -530,7 +566,9 @@
                         question_id: questions[currentQuestionIndex].question_id,
                         question: questions[currentQuestionIndex].question,
                         annotated_prerequisite: selectedPrerequisite,
-                        annotator_name: window.currentUser ? window.currentUser.username : 'Anonymous'
+                        annotator_name: window.currentUser ? window.currentUser.username : 'Anonymous',
+                        dataset_type: questions[currentQuestionIndex].dataset_type || selectedDataset,
+                        image_url: questions[currentQuestionIndex].image_url || null
                     })
                 });
 
