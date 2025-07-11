@@ -2,7 +2,7 @@
 let leaderboardData = [];
 const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/1BiHQZ5-DpgB_RlrxC-w0q_zxD9Tj-YxYpG9vU01IPD8/gviz/tq?sheet=Sheet1';
 
-console.log('Loaded script.js version: 2025-07-04-v5'); // Updated version for tracking
+console.log('Loaded script.js version: 2025-07-05-v6'); // Updated version for tracking
 
 // Fetch leaderboard data from Google Sheets
 fetch(spreadsheetURL)
@@ -350,7 +350,7 @@ function showNotification(message, type = 'info') {
   notification.className = `notification ${type} show`;
   setTimeout(() => {
     notification.classList.remove('show');
-  }, 3000);
+  }, 4000); // Increased from 3000 to 4000 ms
 }
 
 // Switch to signup modal
@@ -368,15 +368,6 @@ function switchToLogin() {
   if (signupModal) signupModal.classList.add('hidden');
   if (loginModal) loginModal.classList.remove('hidden');
 }
-
-// Filter leaderboard data
-// function filterData(data) {
-//   return data.filter(entry => {
-//     const matchesType = currentFilters.modelType === 'all' || entry.modelType.toLowerCase() === currentFilters.modelType.toLowerCase();
-//     const matchesSize = currentFilters.size === 'all' || entry.size === currentFilters.size;
-//     return matchesType && matchesSize;
-//   });
-// }
 
 // Sort leaderboard data
 function sortData(data, column, direction) {
@@ -441,6 +432,7 @@ function updateSortIcons() {
     activeIcon.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
   }
 }
+
 function renderLeaderboard() {
   const filtered = filterData(leaderboardData);
   const sorted = sortData(filtered, currentSort.column, currentSort.direction);
@@ -530,7 +522,7 @@ async function detectPrerequisites(question, correctAnswer, wrongAnswer) {
         ? data.single_missing_prerequisite
         : 'None';
       console.log('Rendering prerequisites:', { allPrereqs, missingPrereq }, new Date().toISOString()); // Debug log
-      prerequisites_Displaysplay.innerHTML = `<div>All Prerequisites: ${allPrereqs}</div><div>Missing Prerequisite: ${missingPrereq}</div>`;
+      prerequisitesDisplay.innerHTML = `<div>All Prerequisites: ${allPrereqs}</div><div>Missing Prerequisite: ${missingPrereq}</div>`; // Fixed typo from prerequisites_Displaysplay
       const questionInput = document.getElementById('questionInput');
       if (questionInput && questionInput.value) {
         questionInput.value = '';
